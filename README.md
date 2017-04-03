@@ -37,7 +37,8 @@ Dependencies, Platform and Usage:
           'Oh-no-I've-run-out-of-all-my-space-and-this-is-the-only-HDD-with-some-remaining' directory/folder.
           
           Special Parameter: Setting DESTINATION to be '__in-place__' does all the processing in the same directory.
-          So, you'll have everything in the same directory, but compressed.
+          So, you'll have everything in the same directory, but compressed. (This special parameter's syntax has been
+          intentionlly made to resemble Python's special variable syntax.)
       
       -I turns on photo processing. Photo processing as in resizes everything to be 1000xautomatic_value size (by default)
        An optional parameter to -I can change the resize scale. I generally use 1300, 1700 and similar numbers for the
