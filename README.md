@@ -1,5 +1,5 @@
 # chiyoko
-Python module to clone a directory hierarchy that processes multimedia files during the cloning
+Python script to clone a directory hierarchy, that also processes it's multimedia files along the way 
 
 Hey You!
 "Who? Me?"
