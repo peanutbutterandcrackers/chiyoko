@@ -24,7 +24,7 @@ Dependencies, Platform and Usage:
              $ python3 chiyoko.py SOURCE DESTINATION -I -V
     
     Dependencies:
-      i) imagemagick-common ($sudo apt-get install imagemagick-common)
+      i) imagemagick ($sudo apt-get install imagemagick)
       ii) avconv ($ sudo apt-get install libav-tools)
       iii) Other GNU utilities that should be on your Linux Distro by default (file, du, tail)
     
