@@ -20,7 +20,7 @@ Name:
 Dependencies, Platform and Usage:
     This script works only on Linux. If you're using Windows or Mac, and want to use it, just live boot a Linux Distro
     and run this script. This one is your best bet: https://linuxmint.com/download.php (Linux Mint 18.1 XFCE), as it
-    with all the dependencies pre-installed and you can run this script with a simple command:
+    comes with all the dependencies pre-installed and you can run this script with this simple command:
              $ python3 chiyoko.py SOURCE DESTINATION -I -V
     
     Dependencies:
