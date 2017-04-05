@@ -117,15 +117,13 @@ def main():
 	print("Processed:  %s\t%s" % (PROCESSED_SIZE, cloneExportPath)) 
 	print("\nTime Taken: %f seconds" % (time() - initTime))
 
-def singleQuoteHandler(PATH, handleChildFiles=True, handleParents=False):	
+def singleQuoteHandler(PATH, handleChildFiles=True, handleParents=True):	
 	"""
 	Goes through a directory - changes all the single quotes in the pathname PATH to
 	underscore characters. If handleChildFiles is set to False, will not change the
 	child dirs/files name.
 	"""
 	
-	INIT_WORKING_DIR = os.path.abspath(os.getcwd())
-
 	renamed = OrderedDict()
 	
 	fatalNameRegex = re.compile(r"'")
@@ -145,17 +143,6 @@ def singleQuoteHandler(PATH, handleChildFiles=True, handleParents=False):
 			os.rename(fatalPortion, properPath)
 			renamed[fatalPortion] = properPath
 			PATH = properPath + PATH[len(fatalPortion):]
-	
-	PATH_basename = os.path.basename(PATH)
-	PATH_dirname = os.path.dirname(PATH)
-	if fatalNameRegex.search(PATH_basename):
-		processedName = fatalNameRegex.sub('_', PATH_basename)
-		processedPath = PATH_dirname + os.sep + processedName
-		os.chdir(PATH_dirname)
-		os.rename(PATH, processedPath)
-		renamed[PATH] = processedPath
-		PATH = processedPath
-		os.chdir(PATH)
 
 	if handleChildFiles:
 		redoWalk = True
@@ -188,8 +175,6 @@ def singleQuoteHandler(PATH, handleChildFiles=True, handleParents=False):
 						redoWalk = True
 				if redoWalk:
 					break
-
-	os.chdir(INIT_WORKING_DIR)
 
 	return renamed, PATH
 
