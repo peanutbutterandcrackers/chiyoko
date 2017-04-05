@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 from time import time
-import argparse, os, re, subprocess
+import argparse, os, re, subprocess, sys
 
 ImageProcessor = "convert -verbose -resize %s '%s' '%s'"
 VideoProcessor = "avconv -loglevel quiet -y -i '%s' -b:v 698k -b:a 94k -ar 48000 -s 640x512 '%s'"
