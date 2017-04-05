@@ -75,6 +75,8 @@ def main():
 		sys.exit(1)
 
 	renamed_dict_src, SOURCE = singleQuoteHandler(SOURCE)
+	for i in renamed_dict_src:
+		print(i, renamed_dict_src[i])
 
 	ORIGINAL_SIZE = subprocess.getoutput("du -h '%s' | tail -n 1 | cut -f 1" % SOURCE)
 
@@ -133,6 +135,9 @@ def singleQuoteHandler(PATH, handleChildFiles=True, handleParents=False):
 	fatalNameRegex = re.compile(r"'")
 
 	if handleParents:
+		# I'm keeping this because I worked for this one but this doesn't really seem
+		# to serve any purpose, at least not in this script. So, I might remove the
+		# handleParents section all together
 		while fatalNameRegex.search(PATH):
 			# Keep on renaming folder until none of the parent directories of the given
 			# folder have a single quote in their name
@@ -147,6 +152,17 @@ def singleQuoteHandler(PATH, handleChildFiles=True, handleParents=False):
 			os.rename(fatalPortion, properPath)
 			renamed[fatalPortion] = properPath
 			PATH = properPath + PATH[len(fatalPortion):]
+	
+
+	PATH_basename = os.path.basename(PATH)
+	if fatalNameRegex.search(PATH_basename):
+		properName = fatalNameRegex.sub('_', PATH_basename)
+		properPath = os.path.dirname(PATH) + os.sep + properName
+		os.chdir(os.path.dirname(PATH)) # just in case os.getcwd() is the PATH
+		os.rename(PATH, properPath) # renames the PATH
+		renamed[PATH] = properPath
+		PATH = properPath
+		os.chdir(PATH) # necessary? Or should this be conditional along with the prev one?
 	
 	if handleChildFiles:
 		redoWalk = True
