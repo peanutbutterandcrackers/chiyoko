@@ -63,7 +63,7 @@ def main():
 		DEST = os.path.dirname(SOURCE)
 	ResizeScale = args.Image_resize_scale
 
-	exportPath = figureExportPath(SOURCE, SOURCE, DEST)
+	cloneExportPath = figureExportPath(SOURCE, SOURCE, DEST)
 	if os.path.exists(exportPath) and not args.DESTINATION == '__in-place__':
 		print("""
 			   It seems that there already is a file named '%s' in the specified
@@ -75,7 +75,6 @@ def main():
 		sys.exit(1)
 
 	renamed_dict_src, SOURCE = singleQuoteHandler(SOURCE)
-	renamed_dict_dest, DEST = singleQuoteHandler(DEST, handleChildFiles=False)
 
 	ORIGINAL_SIZE = subprocess.getoutput("du -h '%s' | tail -n 1 | cut -f 1" % SOURCE)
 
@@ -113,13 +112,11 @@ def main():
 
 	clonedCorrector(renamed_dict_src, SOURCE, UNABRIDGED_SOURCE, DEST)
 	# because the cloned files should be corrected first, else, paths will be 'broken'
-#	if not args.DESTINATION == '__in-place__' or exportPath == UNABRIDGED_SOURCE:
-#		singleQuoteReverser(renamed_dict_dest)
-#		singleQuoteReverser(renamed_dict_src)
+	singleQuoteReverser(renamed_dict_src)
 	
 	print("\nAll Done!")
 	print("Original:   %s\t%s" % (ORIGINAL_SIZE, UNABRIDGED_SOURCE)) 
-	print("Processed:  %s\t%s" % (PROCESSED_SIZE, exportPath)) 
+	print("Processed:  %s\t%s" % (PROCESSED_SIZE, cloneExportPath)) 
 	print("\nTime Taken: %f seconds" % (time() - initTime))
 
 def singleQuoteHandler(PATH, handleChildFiles=True, handleParents=False):	
