@@ -113,16 +113,16 @@ def main():
 
 	clonedCorrector(renamed_dict_src, SOURCE, UNABRIDGED_SOURCE, DEST)
 	# because the cloned files should be corrected first, else, paths will be 'broken'
-	if not args.DESTINATION == '__in-place__' or exportPath == UNABRIDGED_SOURCE:
-		singleQuoteReverser(renamed_dict_dest)
-		singleQuoteReverser(renamed_dict_src)
+#	if not args.DESTINATION == '__in-place__' or exportPath == UNABRIDGED_SOURCE:
+#		singleQuoteReverser(renamed_dict_dest)
+#		singleQuoteReverser(renamed_dict_src)
 	
 	print("\nAll Done!")
 	print("Original:   %s\t%s" % (ORIGINAL_SIZE, UNABRIDGED_SOURCE)) 
 	print("Processed:  %s\t%s" % (PROCESSED_SIZE, exportPath)) 
 	print("\nTime Taken: %f seconds" % (time() - initTime))
 
-def singleQuoteHandler(PATH, handleChildFiles=True):	
+def singleQuoteHandler(PATH, handleChildFiles=True, handleParents=False):	
 	"""
 	Goes through a directory - changes all the single quotes in the pathname PATH to
 	underscore characters. If handleChildFiles is set to False, will not change the
@@ -134,21 +134,22 @@ def singleQuoteHandler(PATH, handleChildFiles=True):
 	renamed = OrderedDict()
 	
 	fatalNameRegex = re.compile(r"'")
-	
-	while fatalNameRegex.search(PATH):
-		# Keep on renaming folder until none of the parent directories of the given
-		# folder have a single quote in their name
-		singleQuoteIndex = PATH.find("'")
-		succeedingSepIndex = PATH.find(os.sep, singleQuoteIndex)
-		if succeedingSepIndex == -1:
-			succeedingSepIndex = None
-		fatalPortion = PATH[:succeedingSepIndex]
-		os.chdir(os.path.dirname(fatalPortion))
-		properPortion = fatalNameRegex.sub('_', os.path.basename(fatalPortion))
-		properPath = os.path.dirname(fatalPortion) + os.sep + properPortion
-		os.rename(fatalPortion, properPath)
-		renamed[fatalPortion] = properPath
-		PATH = properPath + PATH[len(fatalPortion):]
+
+	if handleParents:
+		while fatalNameRegex.search(PATH):
+			# Keep on renaming folder until none of the parent directories of the given
+			# folder have a single quote in their name
+			singleQuoteIndex = PATH.find("'")
+			succeedingSepIndex = PATH.find(os.sep, singleQuoteIndex)
+			if succeedingSepIndex == -1:
+				succeedingSepIndex = None
+			fatalPortion = PATH[:succeedingSepIndex]
+			os.chdir(os.path.dirname(fatalPortion))
+			properPortion = fatalNameRegex.sub('_', os.path.basename(fatalPortion))
+			properPath = os.path.dirname(fatalPortion) + os.sep + properPortion
+			os.rename(fatalPortion, properPath)
+			renamed[fatalPortion] = properPath
+			PATH = properPath + PATH[len(fatalPortion):]
 	
 	if handleChildFiles:
 		redoWalk = True
