@@ -59,34 +59,51 @@ def main():
 		DEST = os.path.dirname(SOURCE)
 	ResizeScale = args.Image_resize_scale
 
+	clonedPath = figureExportPath(SOURCE, SOURCE, DEST)
+	if os.path.exists(clonedPath) and not args.DESTINATION == '__in-place__':
+		print("""
+			   It seems that there already is a file named '%s' in the specified
+			   destination. Maybe it's the output of previous execution of this
+			   script. If you want to have a clone generated in the same destination
+			   please either rename or delete the file, and re-run this script.
+			  
+			  """ % os.path.basename(SOURCE))
+		sys.exit(1)
+
 	for dirpath, dirnames, files in os.walk(SOURCE):
 		os.chdir(dirpath)
 		print()
 		print('*' * 10 + "Current Directory: %s" % dirpath + '*' * 10)
 		print()
+		if not (bool(dirnames) and bool(files)):
+			# Clone even the empty directories
+			dirpath = os.path.abspath(dirpath)
+			dir_exportPath = figureExportPath(dirpath, SOURCE, DEST)
+			os.makedirs(dir_exportPath, exist_ok=True)
 		for _file in files:
 			filePath = os.path.abspath(_file)	
-			filePath = handleSingleQuotes(filePath)
+			_file = handleSingleQuotes(_file)
 			exportPath = figureExportPath(filePath, SOURCE, DEST)
 			createReqExportPath(exportPath)
 			if bool(ResizeScale) and isImage(_file):
 				print(subprocess.getoutput(ImageProcessor
-					 % (ResizeScale, filePath, exportPath)))
+					 % (ResizeScale, _file, exportPath)))
 			elif bool(args.Video) and isVideo(_file):
 				print("\nWorking on the video '%s'" % _file)
 				print("This will take quite a bit of time... please be patient")
 				start_time = time()
-				subprocess.getoutput(VideoProcessor % (filePath, exportPath))
+				subprocess.getoutput(VideoProcessor % (_file, exportPath))
 				print("Processed '%s' in %f seconds"
 					 % (_file, (time()-start_time)), end='\n\n')
 			else:
 				print(subprocess.getoutput("cp -v '%s' '%s'" % 
-					(filePath, exportPath)))
+					(_file, exportPath)))
 
 	print("\nAll Done!")
-	print("Original:  ", subprocess.getoutput("du -h '%s' | tail -n 1" % SOURCE))
-	print("Processed: ", subprocess.getoutput("du -h '%s' | tail -n 1" %
-			 os.sep .join([DEST, os.path.basename(SOURCE)])))
+	print("Original:  ", subprocess.getoutput("du -h '%s' | tail -n 1" %
+								handleSingleQuotes(SOURCE)))
+	print("Processed: ", subprocess.getoutput("du -h '%s' | tail -n 1" % 
+								handleSingleQuotes(clonedPath)))
 	print("Time Taken: %f seconds" % (time() - initTime))
 
 def handleSingleQuotes(path, shell=False):
