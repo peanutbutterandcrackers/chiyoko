@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 from time import time
-import argparse, os, subprocess
+import argparse, os, re, subprocess
 
 ImageProcessor = "convert -verbose -resize %s '%s' '%s'"
 VideoProcessor = "avconv -loglevel quiet -y -i '%s' -b:v 698k -b:a 94k -ar 48000 -s 640x512 '%s'"
@@ -66,16 +66,17 @@ def main():
 		print()
 		for _file in files:
 			filePath = os.path.abspath(_file)	
+			filePath = handleSingleQuotes(filePath)
 			exportPath = figureExportPath(filePath, SOURCE, DEST)
 			createReqExportPath(exportPath)
 			if bool(ResizeScale) and isImage(_file):
 				print(subprocess.getoutput(ImageProcessor
-					 % (ResizeScale, _file, exportPath)))
+					 % (ResizeScale, filePath, exportPath)))
 			elif bool(args.Video) and isVideo(_file):
 				print("\nWorking on the video '%s'" % _file)
 				print("This will take quite a bit of time... please be patient")
 				start_time = time()
-				subprocess.getoutput(VideoProcessor % (_file, exportPath))
+				subprocess.getoutput(VideoProcessor % (filePath, exportPath))
 				print("Processed '%s' in %f seconds"
 					 % (_file, (time()-start_time)), end='\n\n')
 			else:
@@ -87,6 +88,23 @@ def main():
 	print("Processed: ", subprocess.getoutput("du -h '%s' | tail -n 1" %
 			 os.sep .join([DEST, os.path.basename(SOURCE)])))
 	print("Time Taken: %f seconds" % (time() - initTime))
+
+def handleSingleQuotes(path, shell=False):
+	"""Returns a backslashed-escaped-single-quote version of path, to feed into
+	   subprocess.getoutput(). If calling a command through shell or if said command
+	   is a shell-builtin, set shell=True
+	"""
+	singleQuoteRegex = re.compile(r'(\')')
+	hasSingleQuotes = singleQuoteRegex.search(path)
+	if shell and hasSingleQuotes:
+		fixedPath = re.sub(r'(^.*$)', r"$'\g<1>'", fixedPath) 
+	elif hasSingleQuotes:
+		fixedPath = singleQuoteRegex.sub(r'\\\g<1>', path)
+	else:
+		fixedPath = path
+
+	return fixedPath
+
 
 if __name__ == "__main__":
 	main()
