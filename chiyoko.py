@@ -64,7 +64,7 @@ def main():
 	ResizeScale = args.Image_resize_scale
 
 	cloneExportPath = figureExportPath(SOURCE, SOURCE, DEST)
-	if os.path.exists(exportPath) and not args.DESTINATION == '__in-place__':
+	if os.path.exists(cloneExportPath) and not args.DESTINATION == '__in-place__':
 		print("""
 			   It seems that there already is a file named '%s' in the specified
 			   destination. Maybe it's the output of previous execution of this
@@ -104,7 +104,7 @@ def main():
 					 % (_file, (time()-start_time)), end='\n\n')
 			else:
 				print(subprocess.getoutput("cp -v '%s' '%s'" % 
-					(filePath, exportPath)))
+					(_file, exportPath)))
 
 	currentExportPath = figureExportPath(SOURCE, SOURCE, DEST)
 	PROCESSED_SIZE = subprocess.getoutput("du -h '%s' | tail -n 1 | cut -f 1"
