@@ -27,13 +27,15 @@ def createReqExportPath(reqPath):
 def isImage(givenFile):
 	"""Returns a Boolean value. True or False. Rough definition of an Image"""
 	subject = os.path.abspath(givenFile)
-	isImg = 'image' in subprocess.getoutput("file --mime-type %s" % subject)
+	isImg = 'image' in subprocess.getoutput("file --mime-type %s" %
+				handleSingleQuotes(subject, shell=True))
 	return isImg
 
 def isVideo(givenFile):
 	"""Checks Whether a File is a Video or not -> Boolean"""
 	subject = os.path.abspath(givenFile)
-	isVid = 'video' in subprocess.getoutput("file --mime-type '%s'" % subject)
+	isVid = 'video' in subprocess.getoutput("file --mime-type '%s'" %
+				handleSingleQuotes(subject, shell=True))
 	return isVid
 
 def main():
@@ -81,29 +83,32 @@ def main():
 			dir_exportPath = figureExportPath(dirpath, SOURCE, DEST)
 			os.makedirs(dir_exportPath, exist_ok=True)
 		for _file in files:
-			filePath = os.path.abspath(_file)	
-			_file = handleSingleQuotes(_file)
-			exportPath = figureExportPath(filePath, SOURCE, DEST)
+			raw_filePath = os.path.abspath(_file)	
+			filePath = handleSingleQuotes(raw_filePath)
+			print('filepath: ' + filePath)
+			exportPath = figureExportPath(raw_filePath, SOURCE, DEST)
 			createReqExportPath(exportPath)
 			if bool(ResizeScale) and isImage(_file):
 				print(subprocess.getoutput(ImageProcessor
-					 % (ResizeScale, _file, exportPath)))
+					 % (ResizeScale, filePath, handleSingleQuotes(exportPath))))
 			elif bool(args.Video) and isVideo(_file):
 				print("\nWorking on the video '%s'" % _file)
 				print("This will take quite a bit of time... please be patient")
 				start_time = time()
-				subprocess.getoutput(VideoProcessor % (_file, exportPath))
+				subprocess.getoutput(VideoProcessor % (filePath,
+						handleSingleQuotes(exportPath)))
 				print("Processed '%s' in %f seconds"
 					 % (_file, (time()-start_time)), end='\n\n')
 			else:
-				print(subprocess.getoutput("cp -v '%s' '%s'" % 
-					(_file, exportPath)))
+				print(subprocess.getoutput("echo -v " +
+						handleSingleQuotes(filePath, shell=True) + " " +
+						handleSingleQuotes(exportPath, shell=True)))
 
 	print("\nAll Done!")
 	print("Original:  ", subprocess.getoutput("du -h '%s' | tail -n 1" %
-								handleSingleQuotes(SOURCE)))
+								handleSingleQuotes(SOURCE, shell=True)))
 	print("Processed: ", subprocess.getoutput("du -h '%s' | tail -n 1" % 
-								handleSingleQuotes(clonedPath)))
+								handleSingleQuotes(clonedPath, shell=True)))
 	print("Time Taken: %f seconds" % (time() - initTime))
 
 def handleSingleQuotes(path, shell=False):
@@ -111,14 +116,17 @@ def handleSingleQuotes(path, shell=False):
 	   subprocess.getoutput(). If calling a command through shell or if said command
 	   is a shell-builtin, set shell=True
 	"""
-	singleQuoteRegex = re.compile(r'(\')')
+	singleQuoteRegex = re.compile(r'(?<![\\$])(\')') # actually, has UNQUOTED single quotes
 	hasSingleQuotes = singleQuoteRegex.search(path)
-	if shell and hasSingleQuotes:
-		fixedPath = re.sub(r'(^.*$)', r"$'\g<1>'", fixedPath) 
-	elif hasSingleQuotes:
+	if hasSingleQuotes:
 		fixedPath = singleQuoteRegex.sub(r'\\\g<1>', path)
+		fixedPath = "'" + fixedPath + "'"
+		if shell:
+			fixedPath = re.sub(r'(^.*$)', r"$\g<1>", fixedPath) 
 	else:
 		fixedPath = path
+
+#	fixedPath = str.encode(fixedPath).decode('unicode_escape')
 
 	return fixedPath
 
