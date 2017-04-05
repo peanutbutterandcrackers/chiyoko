@@ -110,8 +110,6 @@ def main():
 	PROCESSED_SIZE = subprocess.getoutput("du -h '%s' | tail -n 1 | cut -f 1"
 		% currentExportPath)
 
-	clonedCorrector(renamed_dict_src, SOURCE, UNABRIDGED_SOURCE, DEST)
-	# because the cloned files should be corrected first, else, paths will be 'broken'
 	singleQuoteReverser(renamed_dict_src)
 	
 	print("\nAll Done!")
@@ -148,6 +146,17 @@ def singleQuoteHandler(PATH, handleChildFiles=True, handleParents=False):
 			renamed[fatalPortion] = properPath
 			PATH = properPath + PATH[len(fatalPortion):]
 	
+	PATH_basename = os.path.basename(PATH)
+	PATH_dirname = os.path.dirname(PATH)
+	if fatalNameRegex.search(PATH_basename):
+		processedName = fatalNameRegex.sub('_', PATH_basename)
+		processedPath = PATH_dirname + os.sep + processedName
+		os.chdir(PATH_dirname)
+		os.rename(PATH, processedPath)
+		renamed[PATH] = processedPath
+		PATH = processedPath
+		os.chdir(PATH)
+
 	if handleChildFiles:
 		redoWalk = True
 		while redoWalk:
@@ -193,22 +202,6 @@ def singleQuoteReverser(renamed_dict):
 	# paths might be 'broken'. An ordered bottom-Up, instead of a disordered top-down.
 	for old_name in reversed(renamed_dict):
 		os.rename(renamed_dict[old_name], old_name)
-
-def clonedCorrector(renamed_dict, src, unabrSrc, dest):
-	"""Reverses the changes made by the singleQuoteHandler function in the processed directory
-	   hierarchy. So, this essentially figures out if a file in the cloned directory was rena-
-	   med and, if yes, changes the name back to the original.
-	   The renamed_dict to input to this function is the one returned by singleQuoteHandler on
-	   the SOURCE.
-	   unabrSrc -> The 'unabridged' source
-	"""
-	# Same here with the use of OrderedDict as with the previous function
-	for originalName in reversed(renamed_dict):
-		processedName = renamed_dict[originalName]
-		clonedName = figureExportPath(processedName, src, dest)
-		shouldBeNamed = figureExportPath(originalName, unabrSrc, dest)
-		if os.path.exists(clonedName):
-			os.rename(clonedName, shouldBeNamed)
 
 
 if __name__ == "__main__":
