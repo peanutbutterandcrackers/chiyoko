@@ -70,7 +70,8 @@ def main():
 		DEST = os.path.abspath(args.DESTINATION)
 	else:
 		DEST = os.path.dirname(SOURCE)
-		
+	UNABRIDGED_DEST = DEST
+
 	ResizeScale = args.Image_resize_scale
 
 	cloneExportPath = figureExportPath(SOURCE, SOURCE, DEST)
@@ -129,11 +130,9 @@ def main():
 	PROCESSED_SIZE = subprocess.getoutput("du -h '%s' | tail -n 1 | cut -f 1"
 		% currentExportPath)
 
-	for i in renamed_dict_dest:
-		print(i + ' -> ' + renamed_dict_dest[i])
-
 	singleQuoteReverser(renamed_dict_dest)
 	singleQuoteReverser(renamed_dict_src)
+	cloneNameSourcerer(UNABRIDGED_SOURCE, UNABRIDGED_DEST)
 	
 	print("\nAll Done!")
 	print("Original:   %s\t%s" % (ORIGINAL_SIZE, UNABRIDGED_SOURCE)) 
@@ -226,7 +225,34 @@ def singleQuoteReverser(renamed_dict):
 	# paths might be 'broken'. An ordered bottom-Up, instead of a disordered top-down.
 	for old_name in reversed(renamed_dict):
 		os.rename(renamed_dict[old_name], old_name)
+	
+def cloneNameSourcerer(SOURCE, DEST):
+	"""Turns the clone names back to the way they were named back in the source. The
+	   name's a bad pun and this function is supposed to be the last one of the 'rever-
+	   se' functions to be executed.
+	   Since by the time of execution of this function, the source and the 1st dest will
+	   have been restored to original already, give it the original source and dest.
+	"""
+	originalNameList = []
 
+	for _dir, _dirs, _files in os.walk(SOURCE):
+		originalNameList.append(os.path.abspath(_dir))
+		for eachDir in _dirs:
+			originalNameList.append(os.path.abspath(eachdir))
+		for _file in _files:
+			originalNameList.append(os.path.abspath(_file))
+
+	for originalName in reversed(originalNameList): # Has to be reversed. Bottom to top.
+		originalExportPath = figureExportPath(originalName, SOURCE, DEST)
+		processedExportPath = re.sub(r'\'', '_', originalExportPath)
+		exportPathOriginalChunk = originalExportPath[:len(DEST)]
+		exportPathOtherChunk = processedExportPath[len(exportPathOriginalChunk):]
+		currentExportPath = exportPathOriginalChunk + exportPathOtherChunk
+		if os.path.exists(currentExportPath):
+			os.rename(currentExportPath,
+				os.path.dirname(currentExportPath)
+				+ os.sep
+				+ re.sub(r'_', r"'", os.path.basename(currentExportPath)))
 
 if __name__ == "__main__":
 	main()
