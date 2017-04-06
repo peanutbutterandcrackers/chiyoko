@@ -85,6 +85,11 @@ def main():
 		sys.exit(1)
 
 	renamed_dict_src, SOURCE = singleQuoteHandler(SOURCE)
+	destHasBeenAltered = not os.path.exists(DEST)
+	if destHasBeenAltered:
+		OLD_DEST = DEST
+		DEST = figureAlteredDestination(OLD_DEST, renamed_dict_src)
+	renamed_dict_dest, DEST = singleQuoteHandler(DEST, handleChildFiles=False)
 
 	ORIGINAL_SIZE = subprocess.getoutput("du -h '%s' | tail -n 1 | cut -f 1" % SOURCE)
 
@@ -124,6 +129,10 @@ def main():
 	PROCESSED_SIZE = subprocess.getoutput("du -h '%s' | tail -n 1 | cut -f 1"
 		% currentExportPath)
 
+	for i in renamed_dict_dest:
+		print(i + ' -> ' + renamed_dict_dest[i])
+
+	singleQuoteReverser(renamed_dict_dest)
 	singleQuoteReverser(renamed_dict_src)
 	
 	print("\nAll Done!")
