@@ -238,7 +238,7 @@ def cloneNameSourcerer(SOURCE, DEST):
 	for _dir, _dirs, _files in os.walk(SOURCE):
 		originalNameList.append(os.path.abspath(_dir))
 		for eachDir in _dirs:
-			originalNameList.append(os.path.abspath(eachdir))
+			originalNameList.append(os.path.abspath(eachDir))
 		for _file in _files:
 			originalNameList.append(os.path.abspath(_file))
 
