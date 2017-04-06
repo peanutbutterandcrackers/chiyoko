@@ -55,12 +55,24 @@ def main():
 			action='store_true')
 	args = parser.parse_args()
 
+	if not os.path.exists(args.SOURCE):
+		print("The specified source '%s' doesn't exist." % args.SOURCE,
+				file=sys.stderr)
+		sys.exit(1)
+	if not os.path.existss(args.DEST):
+		# '__in-place__' will be handled by os.path.exists(args.SOURCE)
+		# well... should be.
+		print("The specified destination '%s' doesn't exist." %
+				args.DESTINATION, file = sys.stderr)
+		sys.exit(1)
+
 	SOURCE = os.path.abspath(args.SOURCE)
 	UNABRIDGED_SOURCE = SOURCE
 	if not args.DESTINATION == '__in-place__':
 		DEST = os.path.abspath(args.DESTINATION)
 	else:
 		DEST = os.path.dirname(SOURCE)
+		
 	ResizeScale = args.Image_resize_scale
 
 	cloneExportPath = figureExportPath(SOURCE, SOURCE, DEST)
@@ -71,7 +83,7 @@ def main():
 			   script. If you want to have a clone generated in the same destination
 			   please either rename or delete the file, and re-run this script.
 			  
-			  """ % os.path.basename(SOURCE))
+			  """ % os.path.basename(SOURCE), file=sys.stderr)
 		sys.exit(1)
 
 	renamed_dict_src, SOURCE = singleQuoteHandler(SOURCE)
