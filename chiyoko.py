@@ -84,8 +84,6 @@ def main():
 			  """ % os.path.basename(SOURCE), file=sys.stderr)
 		sys.exit(1)
 
-	clone_ProjectedPath_original = clonedFilePathProjector(SOURCE, SOURCE, DEST)
-
 	renamed_dict_src, SOURCE = singleQuoteHandler(SOURCE)
 	destHasBeenAltered = not os.path.exists(DEST)
 	if destHasBeenAltered:
@@ -131,16 +129,12 @@ def main():
 	PROCESSED_SIZE = subprocess.getoutput("du -h '%s' | tail -n 1 | cut -f 1"
 		% currentExportPath)
 
-	clone_ProjectedPath_processed = clonedFilePathProjector(SOURCE, SOURCE, DEST)
+	for i in renamed_dict_dest:
+		print(i + ' -> ' + renamed_dict_dest[i])
+
 	singleQuoteReverser(renamed_dict_dest)
 	singleQuoteReverser(renamed_dict_src)
 	
-	print(len(clone_ProjectedPath_original))
-	f = open('cloned_file_projections', 'w')
-	for i in range(len(clone_ProjectedPath_processed)):
-		print(clone_ProjectedPath_original[i], clone_ProjectedPath_processed[i], file=f)
-	f.close()
-
 	print("\nAll Done!")
 	print("Original:   %s\t%s" % (ORIGINAL_SIZE, UNABRIDGED_SOURCE)) 
 	print("Processed:  %s\t%s" % (PROCESSED_SIZE, cloneExportPath)) 
@@ -233,26 +227,6 @@ def singleQuoteReverser(renamed_dict):
 	for old_name in reversed(renamed_dict):
 		os.rename(renamed_dict[old_name], old_name)
 
-def clonedFilePathProjector(PATH, SOURCE, DEST):
-	"""
-	Based on the SOURCE and DEST given, starting from PATH, returns a list of
-	what the final path of each file/dir would be. Should be useful to revert
-	the names of the clone files back to the way originals are named.
-	"""
-	PATH = os.path.abspath(PATH)
-	SOURCE = os.path.abspath(SOURCE)
-	DEST = os.path.abspath(DEST)
-	projectedPaths = []
-	for dirpath, dirs, files in os.walk(PATH):
-		for _dir in dirs:
-			_dirpath = os.path.abspath(_dirpath)
-			projectedPath = figureExportPath(_dirpath, SOURCE, DEST)
-			projectedPaths.append(projectedPath)
-		for _file in files:
-			_filepath = os.path.abspath(_file)
-			projectedPath = figureExportPath(_filepath, SOURCE, DEST)
-			projectedPaths.append(projectedPath)
-	return projectedPaths
-	
+
 if __name__ == "__main__":
 	main()
