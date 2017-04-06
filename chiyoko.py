@@ -109,7 +109,11 @@ def main():
 				print("\nWorking on the video '%s'" % _file)
 				print("This will take quite a bit of time... please be patient")
 				start_time = time()
-				subprocess.getoutput(VideoProcessor % (_file, exportPath))
+				if args.DESTINATION == '__in-place__':
+					subprocess.getoutput(VideoProcessor % (_file, 'buffer_'+_file))
+					os.rename('buffer_'+_file, _file)
+				else:
+					subprocess.getoutput(VideoProcessor % (_file, exportPath))
 				print("Processed '%s' in %f seconds"
 					 % (_file, (time()-start_time)), end='\n\n')
 			else:
