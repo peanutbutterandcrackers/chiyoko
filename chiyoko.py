@@ -59,9 +59,7 @@ def main():
 		print("The specified source '%s' doesn't exist." % args.SOURCE,
 				file=sys.stderr)
 		sys.exit(1)
-	if not os.path.exists(args.DEST):
-		# '__in-place__' will be handled by os.path.exists(args.SOURCE)
-		# well... should be.
+	if not args.DESTINATION == '__in-place__' and not os.path.exists(args.DESTINATION):
 		print("The specified destination '%s' doesn't exist." %
 				args.DESTINATION, file = sys.stderr)
 		sys.exit(1)
