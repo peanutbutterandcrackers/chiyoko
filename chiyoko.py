@@ -192,6 +192,22 @@ def singleQuoteHandler(PATH, handleChildFiles=True, handleParents=True):
 
 	return renamed, PATH
 
+def figureAlteredDestination(DEST, renamed_dict): 
+	"""Given the destination and renamed_dict, returns the altered Destination,
+	if any. Useful when the source and destination are in the same directory-tree.
+	"""
+	newDest = DEST # just assuming, and is useful later on
+	test_chunk = DEST
+	if DEST in renamed_dict:
+		newDest = renamed_dict[DEST]
+	else:
+		while test_chunk != '/':
+			test_chunk = os.path.dirname(test_chunk)
+			if test_chunk in renamed_dict:
+				newDest = renamed_dict[test_chunk] + newDest[len(test_chunk):]
+
+	return newDest
+
 def singleQuoteReverser(renamed_dict):
 	"""Reverses The Changes Made By the singleQuoteHandler function.
 	   In the SOURCE!!! (only)
