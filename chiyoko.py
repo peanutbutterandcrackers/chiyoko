@@ -236,6 +236,7 @@ def cloneNameSourcerer(SOURCE, DEST):
 	originalNameList = []
 
 	for _dir, _dirs, _files in os.walk(SOURCE):
+		os.chdir(_dir)
 		originalNameList.append(os.path.abspath(_dir))
 		for eachDir in _dirs:
 			originalNameList.append(os.path.abspath(eachDir))
@@ -248,6 +249,11 @@ def cloneNameSourcerer(SOURCE, DEST):
 		exportPathOriginalChunk = originalExportPath[:len(DEST)]
 		exportPathOtherChunk = processedExportPath[len(exportPathOriginalChunk):]
 		currentExportPath = exportPathOriginalChunk + exportPathOtherChunk
+		print('originalName: ', originalName)
+		print('processedExportPath: ', processedExportPath)
+		print('exportPathOriginalChunk: ', exportPathOriginalChunk)
+		print('exportPathOtherChunk: ', exportPathOtherChunk)
+		print(currentExportPath + ': ' + originalExportPath)
 		if os.path.exists(currentExportPath):
 			os.rename(currentExportPath,
 				os.path.dirname(currentExportPath)
