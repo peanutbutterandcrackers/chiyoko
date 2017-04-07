@@ -249,11 +249,6 @@ def cloneNameSourcerer(SOURCE, DEST):
 		exportPathOriginalChunk = originalExportPath[:len(DEST)]
 		exportPathOtherChunk = processedExportPath[len(exportPathOriginalChunk):]
 		currentExportPath = exportPathOriginalChunk + exportPathOtherChunk
-		print('originalName: ', originalName)
-		print('processedExportPath: ', processedExportPath)
-		print('exportPathOriginalChunk: ', exportPathOriginalChunk)
-		print('exportPathOtherChunk: ', exportPathOtherChunk)
-		print(currentExportPath + ': ' + originalExportPath)
 		if os.path.exists(currentExportPath):
 			os.rename(currentExportPath,
 				os.path.dirname(currentExportPath)
