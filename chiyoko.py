@@ -3,8 +3,8 @@
 from time import time
 import argparse, os, re, subprocess, sys
 
-ImageProcessor = "convert -verbose -resize %s '%s' '%s'"
-VideoProcessor = "avconv -loglevel quiet -y -i '%s' -b:v 698k -b:a 94k -ar 48000 -s 640x512 '%s'"
+ImageProcessor = 'convert -verbose -resize %s "%s" "%s"'
+VideoProcessor = 'avconv -loglevel quiet -y -i "%s" -b:v 698k -b:a 94k -ar 48000 -s 640x512 "%s"'
 
 def figureExportPath(filePath, SOURCE, DEST):
 	"""Figures out the export path for a given file"""
@@ -27,15 +27,15 @@ def createReqExportPath(reqPath):
 def isImage(givenFile):
 	"""Returns a Boolean value. True or False. Rough definition of an Image"""
 	subject = os.path.abspath(givenFile)
-	isImg = 'image' in subprocess.getoutput("file --mime-type %s" %
-				handleSingleQuotes(subject, shell=True))
+	isImg = 'image' in subprocess.getoutput('file --mime-type "%s"' %
+				subject)
 	return isImg
 
 def isVideo(givenFile):
 	"""Checks Whether a File is a Video or not -> Boolean"""
 	subject = os.path.abspath(givenFile)
-	isVid = 'video' in subprocess.getoutput("file --mime-type '%s'" %
-				handleSingleQuotes(subject, shell=True))
+	isVid = 'video' in subprocess.getoutput('file --mime-type "%s"' %
+				subject)
 	return isVid
 
 def main():
@@ -100,15 +100,14 @@ def main():
 				print("Processed '%s' in %f seconds"
 					 % (_file, (time()-start_time)), end='\n\n')
 			else:
-				print(subprocess.getoutput("echo -v " +
-						handleSingleQuotes(filePath, shell=True) + " " +
-						handleSingleQuotes(exportPath, shell=True)))
+				print(subprocess.getoutput('cp -v "%s" "%s"' %
+						(filePath, exportPath)))
 
 	print("\nAll Done!")
 	print("Original:  ", subprocess.getoutput("du -h '%s' | tail -n 1" %
-								handleSingleQuotes(SOURCE, shell=True)))
+								handleSingleQuotes(SOURCE)))
 	print("Processed: ", subprocess.getoutput("du -h '%s' | tail -n 1" % 
-								handleSingleQuotes(clonedPath, shell=True)))
+								handleSingleQuotes(clonedPath)))
 	print("Time Taken: %f seconds" % (time() - initTime))
 
 def handleSingleQuotes(path, shell=False):
@@ -126,7 +125,9 @@ def handleSingleQuotes(path, shell=False):
 	else:
 		fixedPath = path
 
-#	fixedPath = str.encode(fixedPath).decode('unicode_escape')
+	#fixedPath = str.encode(fixedPath).decode('unicode_escape')
+	#the prev line, though not of any use in this code, might be useful in the future
+	fixedPath = (r"%s") % fixedPath
 
 	return fixedPath
 
