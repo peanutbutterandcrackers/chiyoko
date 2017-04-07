@@ -12,7 +12,7 @@ Okay... I'm done with this T.V infomercial thingy.
 
 Name:
     'Chiyoko' is the main character of the 2001, Satoshi Kon movie 'The Millenium Actress'. The name of this script
-    is a homage to the great woman and her relentless pursuit of her love through time, and to the great Mr. Satoshi
+    is a homage to the great woman, and to the great Mr. Satoshi
     Kon for such a wonderful movie.
     This script was written with the belief that even the not-so-important photos lying around in our HDDs today will
     someday turn out to be The Key - "to the most important thing there is". Let's not trade memories for HDD spaces.
@@ -45,7 +45,7 @@ Dependencies, Platform and Usage:
        super important pictures, but 1000 works just fine for most cases.
        
       -V turns on video processing. This doesn't take any arguments. The underlying avconv command that does the video
-        processing is courtesy of Matthew Bro (@leklachu), a really cool guy.
+        processing is courtesy of @leklachu, a really cool guy.
         
       -h or --help will give you usage information
       
