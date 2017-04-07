@@ -58,14 +58,4 @@ Dependencies, Platform and Usage:
       though. Just make sure that you define the command string with a double quote and keep the single quotes around the
       '%s'-es. The single quotes are there to safe-guard against any shell expansions.
       
-    Notes and Tips:
-      The script can handle all sorts of crazy file names. Thanks to the single quotes, we don't have to fear shell's
-      expansions.
-      
-      If you have a huge directory to process, perhaps use a Raspberry Pi.
-      Since this will probably take quite a bit of time, make the computer shutdown after completion of the script on its
-      own with this command (for those of you who do not know):
-        $ python3 chiyoko.py SOURCE DESTINATION -I -V && sudo -S poweroff <<< "YOURPASSWORDGOESHERE"
-        In the aforementioned command, you only have to change the ALLCAPS variables. '$' isn't required but "" (quotes) are.
-      
       Maybe listen to "Chiyoko's Theme" while running this script?      
