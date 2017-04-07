@@ -12,8 +12,7 @@ Okay... I'm done with this T.V infomercial thingy.
 
 Name:
     'Chiyoko' is the main character of the 2001, Satoshi Kon movie 'The Millenium Actress'. The name of this script
-    is a homage to the great woman, and to the great Mr. Satoshi
-    Kon for such a wonderful movie.
+    is a homage to the great woman, and to the great Mr. Satoshi Kon, the genius behind the movie.
     This script was written with the belief that even the not-so-important photos lying around in our HDDs today will
     someday turn out to be The Key - "to the most important thing there is". Let's not trade memories for HDD spaces.
     
