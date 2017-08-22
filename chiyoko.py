@@ -30,13 +30,13 @@ def createReqExportPath(reqPath):
 def isImage(givenFile):
 	"""Returns a Boolean value. True or False. Rough definition of an Image"""
 	subject = os.path.abspath(givenFile)
-	isImg = 'image' in subprocess.getoutput("file --mime-type '%s'" % subject)
+	isImg = 'image' in subprocess.getoutput("file --brief --mime-type '%s'" % subject)
 	return isImg
 
 def isVideo(givenFile):
 	"""Checks Whether a File is a Video or not -> Boolean"""
 	subject = os.path.abspath(givenFile)
-	isVid = 'video' in subprocess.getoutput("file --mime-type '%s'" % subject)
+	isVid = 'video' in subprocess.getoutput("file --brief --mime-type '%s'" % subject)
 	return isVid
 
 def main():
