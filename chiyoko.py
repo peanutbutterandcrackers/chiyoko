@@ -280,7 +280,7 @@ def main():
 	print("\nAll Done!")
 	print("Original:   %s\t%s" % (ORIGINAL_SIZE, UNABRIDGED_SOURCE)) 
 	print("Processed:  %s\t%s" % (PROCESSED_SIZE, cloneExportPath)) 
-	print("\nTime Taken: %f seconds" % (time() - initTime))
+	print("\nTime Taken: %f minutes" % ((time() - initTime)) / 60)
 
 
 if __name__ == '__main__':
