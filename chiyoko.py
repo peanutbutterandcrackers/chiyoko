@@ -111,8 +111,8 @@ def main():
 			exportPath = figureExportPath(filePath, SOURCE, DEST)
 			createReqExportPath(exportPath)
 			if bool(ResizeScale) and isImage(filePath):
-				if ( int(subprocess.getoutput('identify -ping -format "%w" ' +
-					'%s' % _file)) > ResizeScale ):
+				if ( int(subprocess.getoutput('identify -ping -format "%w"' +
+					" '%s'" % _file)) > ResizeScale ):
 					print(subprocess.getoutput(ImageProcessor
 						 % (ResizeScale, _file, exportPath)))
 			elif bool(args.Video) and isVideo(filePath):
