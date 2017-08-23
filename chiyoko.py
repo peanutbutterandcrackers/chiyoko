@@ -62,7 +62,6 @@ def singleQuoteHandler(PATH, handleChildFiles=True, handleParents=True):
 	child dirs/files name.
 	"""
 	renamed = OrderedDict()
-	
 	fatalNameRegex = re.compile(r"'")
 
 	if handleParents:
