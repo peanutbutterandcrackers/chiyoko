@@ -15,12 +15,14 @@ def isImage(givenFile):
 		( 'image' in subprocess.getoutput("file --brief --mime-type '%s'" % subject) )
 	return isImg
 
+
 def isVideo(givenFile):
 	"""Checks Whether a File is a Video or not -> Boolean"""
 	subject = os.path.abspath(givenFile)
 	isVid = ( 'video' in str(mimetypes.guess_type(givenFile)[0]) ) and \
 		( 'video' in subprocess.getoutput("file --brief --mime-type '%s'" % subject) )
 	return isVid
+
 
 def figureExportPath(filePath, SOURCE, DEST):
 	"""Figures out the export path for a given file"""
@@ -34,6 +36,7 @@ def figureExportPath(filePath, SOURCE, DEST):
 	reqPath = os.path.join(DEST, reqTail)
 	return reqPath
 
+
 def createReqExportPath(reqPath):
 	"""Checks whether or not the required path exists; creates non-existant"""
 	reqPath = os.path.abspath(reqPath)
@@ -42,13 +45,13 @@ def createReqExportPath(reqPath):
 	if not os.path.exists(reqPath):
 		os.makedirs(reqPath)
 
+
 def singleQuoteHandler(PATH, handleChildFiles=True, handleParents=True):	
 	"""
 	Goes through a directory - changes all the single quotes in the pathname PATH to
 	underscore characters. If handleChildFiles is set to False, will not change the
 	child dirs/files name.
 	"""
-	
 	renamed = OrderedDict()
 	
 	fatalNameRegex = re.compile(r"'")
@@ -103,6 +106,7 @@ def singleQuoteHandler(PATH, handleChildFiles=True, handleParents=True):
 
 	return renamed, PATH
 
+
 def singleQuoteReverser(renamed_dict):
 	"""Reverses The Changes Made By the singleQuoteHandler function.
 	   In the SOURCE!!! (only)
@@ -112,6 +116,7 @@ def singleQuoteReverser(renamed_dict):
 	# paths might be 'broken'. An ordered bottom-Up, instead of a disordered top-down.
 	for old_name in reversed(renamed_dict):
 		os.rename(renamed_dict[old_name], old_name)
+
 
 def figureAlteredDestination(DEST, renamed_dict): 
 	"""Given the destination and renamed_dict, returns the altered Destination,
@@ -128,6 +133,7 @@ def figureAlteredDestination(DEST, renamed_dict):
 				newDest = renamed_dict[test_chunk] + newDest[len(test_chunk):]
 
 	return newDest
+
 
 def cloneNameSourcerer(SOURCE, DEST):
 	"""Turns the clone names back to the way they were named back in the source. The
@@ -158,9 +164,11 @@ def cloneNameSourcerer(SOURCE, DEST):
 				+ os.sep
 				+ re.sub(r'_', r"'", os.path.basename(currentExportPath)))
 
-def main():
 
-	initTime = time()
+def parse_arguments():
+	"""Parses Arguments. Created for a cleaner code."""
+	global parser, args
+
 	parser = argparse.ArgumentParser(description="clone a directory hierarchy "
  		+ "and compress multimedia files along the way")
 	parser.add_argument('SOURCE', help='Input Path')
@@ -183,14 +191,20 @@ def main():
 				args.DESTINATION, file = sys.stderr)
 		sys.exit(1)
 
+
+def main():
+	initTime = time()
+
+	parse_arguments()
+
 	SOURCE = os.path.abspath(args.SOURCE)
-	UNABRIDGED_SOURCE = SOURCE
 	if not args.DESTINATION == '__in-place__':
 		DEST = os.path.abspath(args.DESTINATION)
 	else:
 		DEST = os.path.dirname(SOURCE)
-	UNABRIDGED_DEST = DEST
 
+	UNABRIDGED_DEST = DEST
+	UNABRIDGED_SOURCE = SOURCE
 	ResizeScale = args.Image_resize_scale
 
 	cloneExportPath = figureExportPath(SOURCE, SOURCE, DEST)
