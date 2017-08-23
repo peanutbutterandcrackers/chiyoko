@@ -195,19 +195,17 @@ def parse_arguments():
 def main():
 	initTime = time()
 
+	# the "autobots, rollout" part of the script. Initializations.
 	parse_arguments()
-
 	SOURCE = os.path.abspath(args.SOURCE)
 	if not args.DESTINATION == '__in-place__':
 		DEST = os.path.abspath(args.DESTINATION)
 	else:
 		DEST = os.path.dirname(SOURCE)
-
 	UNABRIDGED_DEST = DEST
 	UNABRIDGED_SOURCE = SOURCE
 	ResizeScale = args.Image_resize_scale
-
-	cloneExportPath = figureExportPath(SOURCE, SOURCE, DEST)
+	cloneExportPath = figureExportPath(SOURCE, SOURCE, DEST) # Export Path for the 'clone'
 	if os.path.exists(cloneExportPath) and not args.DESTINATION == '__in-place__':
 		print("""
 			   It seems that there already is a file named '%s' in the specified
@@ -218,6 +216,7 @@ def main():
 			  """ % os.path.basename(SOURCE), file=sys.stderr)
 		sys.exit(1)
 
+	# starts the work; renames paths with single quotes (') to have (_) instead of (')
 	renamed_dict_src, SOURCE = singleQuoteHandler(SOURCE)
 	destHasBeenAltered = not os.path.exists(DEST)
 	if destHasBeenAltered:
@@ -225,8 +224,8 @@ def main():
 		DEST = figureAlteredDestination(OLD_DEST, renamed_dict_src)
 	renamed_dict_dest, DEST = singleQuoteHandler(DEST, handleChildFiles=False)
 
+	# The main part of the script
 	ORIGINAL_SIZE = subprocess.getoutput("du -h '%s' | tail -n 1 | cut -f 1" % SOURCE)
-
 	for dirpath, dirnames, files in os.walk(SOURCE):
 		os.chdir(dirpath)
 		print()
@@ -260,15 +259,16 @@ def main():
 			else:
 				print(subprocess.getoutput("cp -v '%s' '%s'" % 
 					(_file, exportPath)))
-
 	currentExportPath = figureExportPath(SOURCE, SOURCE, DEST)
 	PROCESSED_SIZE = subprocess.getoutput("du -h '%s' | tail -n 1 | cut -f 1"
 		% currentExportPath)
 
+	# This part reverses the changes made by the single-quote-handler function(s)
 	singleQuoteReverser(renamed_dict_dest)
 	singleQuoteReverser(renamed_dict_src)
 	cloneNameSourcerer(UNABRIDGED_SOURCE, UNABRIDGED_DEST)
 	
+	# Final output. Logs.
 	print("\nAll Done!")
 	print("Original:   %s\t%s" % (ORIGINAL_SIZE, UNABRIDGED_SOURCE)) 
 	print("Processed:  %s\t%s" % (PROCESSED_SIZE, cloneExportPath)) 
