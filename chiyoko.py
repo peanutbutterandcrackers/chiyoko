@@ -103,6 +103,16 @@ def singleQuoteHandler(PATH, handleChildFiles=True, handleParents=True):
 
 	return renamed, PATH
 
+def singleQuoteReverser(renamed_dict):
+	"""Reverses The Changes Made By the singleQuoteHandler function.
+	   In the SOURCE!!! (only)
+	"""
+	# The reason why OrderedDict was employed was so that this traversal could be
+	# made from the child directories to parent directories so that none of the
+	# paths might be 'broken'. An ordered bottom-Up, instead of a disordered top-down.
+	for old_name in reversed(renamed_dict):
+		os.rename(renamed_dict[old_name], old_name)
+
 def figureAlteredDestination(DEST, renamed_dict): 
 	"""Given the destination and renamed_dict, returns the altered Destination,
 	if any. Useful when the source and destination are in the same directory-tree.
@@ -119,16 +129,6 @@ def figureAlteredDestination(DEST, renamed_dict):
 
 	return newDest
 
-def singleQuoteReverser(renamed_dict):
-	"""Reverses The Changes Made By the singleQuoteHandler function.
-	   In the SOURCE!!! (only)
-	"""
-	# The reason why OrderedDict was employed was so that this traversal could be
-	# made from the child directories to parent directories so that none of the
-	# paths might be 'broken'. An ordered bottom-Up, instead of a disordered top-down.
-	for old_name in reversed(renamed_dict):
-		os.rename(renamed_dict[old_name], old_name)
-	
 def cloneNameSourcerer(SOURCE, DEST):
 	"""Turns the clone names back to the way they were named back in the source. The
 	   name's a bad pun and this function is supposed to be the last one of the 'rever-
