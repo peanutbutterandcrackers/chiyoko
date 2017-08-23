@@ -24,6 +24,15 @@ def isVideo(givenFile):
 	return isVid
 
 
+def isMP4(givenFile):
+	"""Checks whether a file is an MP4 or not -> Boolean"""
+	# This had to be written because $ file foo.MP4 gave 'audio/mp4'
+	subject = os.path.abspath(givenFile)
+	isMP4 = ( 'video' in str(mimetypes.guess_type(givenFile)[0]) ) and \
+		( 'mp4' in subprocess.getoutput("file --brief --mime-type '%s'" % subject) )
+	return isMP4
+
+
 def figureExportPath(filePath, SOURCE, DEST):
 	"""Figures out the export path for a given file"""
 	filePath = os.path.abspath(filePath)
@@ -245,7 +254,7 @@ def main():
 					" '%s'" % _file)) > ResizeScale ):
 					print(subprocess.getoutput(ImageProcessor
 						 % (ResizeScale, _file, exportPath)))
-			elif bool(args.Video) and isVideo(filePath):
+			elif bool(args.Video) and ( isVideo(filePath) or isMP4(filePath) ):
 				print("\nWorking on the video '%s'" % _file)
 				print("This will take quite a bit of time... please be patient")
 				start_time = time()
