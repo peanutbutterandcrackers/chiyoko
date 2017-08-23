@@ -4,7 +4,7 @@ from collections import OrderedDict
 from time import time
 import argparse, mimetypes, os, re, subprocess, sys
 
-ImageProcessor = "convert -verbose -resize %s '%s' '%s'" # Make the Image Processor execute only if image size is larger than the specified resize-scale
+ImageProcessor = "convert -verbose -resize %s '%s' '%s'"
 VideoProcessor = "avconv -loglevel quiet -y -i '%s' -b:v 698k -b:a 94k -ar 48000 -s 640x512 '%s'"
 
 def figureExportPath(filePath, SOURCE, DEST):
@@ -111,8 +111,10 @@ def main():
 			exportPath = figureExportPath(filePath, SOURCE, DEST)
 			createReqExportPath(exportPath)
 			if bool(ResizeScale) and isImage(filePath):
-				print(subprocess.getoutput(ImageProcessor
-					 % (ResizeScale, _file, exportPath)))
+				if ( int(subprocess.getoutput('identify -ping -format "%w" ' +
+					'%s' % _file)) > ResizeScale ):
+					print(subprocess.getoutput(ImageProcessor
+						 % (ResizeScale, _file, exportPath)))
 			elif bool(args.Video) and isVideo(filePath):
 				print("\nWorking on the video '%s'" % _file)
 				print("This will take quite a bit of time... please be patient")
