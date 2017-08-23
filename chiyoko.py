@@ -2,9 +2,9 @@
 
 from collections import OrderedDict
 from time import time
-import argparse, os, re, subprocess, sys
+import argparse, mimetypes, os, re, subprocess, sys
 
-ImageProcessor = "convert -verbose -resize %s '%s' '%s'"
+ImageProcessor = "convert -verbose -resize %s '%s' '%s'" # Make the Image Processor execute only if image size is larger than the specified resize-scale
 VideoProcessor = "avconv -loglevel quiet -y -i '%s' -b:v 698k -b:a 94k -ar 48000 -s 640x512 '%s'"
 
 def figureExportPath(filePath, SOURCE, DEST):
@@ -30,13 +30,15 @@ def createReqExportPath(reqPath):
 def isImage(givenFile):
 	"""Returns a Boolean value. True or False. Rough definition of an Image"""
 	subject = os.path.abspath(givenFile)
-	isImg = 'image' in subprocess.getoutput("file --brief --mime-type '%s'" % subject)
+	isImg = ( 'image' in str(mimetypes.guess_type(givenFile)[0]) ) and \
+		( 'image' in subprocess.getoutput("file --brief --mime-type '%s'" % subject) )
 	return isImg
 
 def isVideo(givenFile):
 	"""Checks Whether a File is a Video or not -> Boolean"""
 	subject = os.path.abspath(givenFile)
-	isVid = 'video' in subprocess.getoutput("file --brief --mime-type '%s'" % subject)
+	isVid = ( 'video' in str(mimetypes.guess_type(givenFile)[0]) ) and \
+		( 'video' in subprocess.getoutput("file --brief --mime-type '%s'" % subject) )
 	return isVid
 
 def main():
