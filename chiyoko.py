@@ -8,6 +8,10 @@ ImageProcessor = "convert -verbose -resize %s '%s' '%s'"
 VideoProcessor = "avconv -loglevel quiet -y -i '%s' -b:v 698k -b:a 94k -ar 48000 -s 640x512 '%s'"
 
 
+def preliminary_checks():
+	"""Checks whether or not dependencies are installed properly or not. If not, exits"""
+	pass
+
 def isImage(givenFile):
 	"""Returns a Boolean value. True or False. Rough definition of an Image"""
 	subject = os.path.abspath(givenFile)
