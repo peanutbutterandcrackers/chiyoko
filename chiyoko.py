@@ -1,16 +1,17 @@
 #!/usr/bin/python3
 
-from collections import OrderedDict
 from time import time
-import argparse, mimetypes, os, re, subprocess, sys
+import argparse, mimetypes, os, re, shlex, subprocess, sys
 
 ImageProcessor = "convert -verbose -resize %s '%s' '%s'"
-VideoProcessor = "avconv -loglevel quiet -y -i '%s' -b:v 698k -b:a 94k -ar 48000 -s 640x512 '%s'"
-
+VideoProcessor = "ffmpeg -loglevel quiet -y -i '%s' -b:v 698k -b:a 94k -ar 48000 -s 640x512 -strict -2 '%s'"
 
 def preliminary_checks():
-	"""Checks whether or not dependencies are installed properly or not. If not, exits"""
+	"""Checks whether or not dependencies are installed properly. If not, exits"""
+	dependencies = ['ffmpeg', 'convert']
+	missing_dependencies = {}
 	pass
+
 
 def isImage(givenFile):
 	"""Returns a Boolean value. True or False. Rough definition of an Image"""
@@ -59,124 +60,6 @@ def createReqExportPath(reqPath):
 		os.makedirs(reqPath)
 
 
-def singleQuoteHandler(PATH, handleChildFiles=True, handleParents=True):	
-	"""
-	Goes through a directory - changes all the single quotes in the pathname PATH to
-	underscore characters. If handleChildFiles is set to False, will not change the
-	child dirs/files name.
-	"""
-	renamed = OrderedDict()
-	fatalNameRegex = re.compile(r"'")
-
-	if handleParents:
-		while fatalNameRegex.search(PATH):
-			# Keep on renaming folder until none of the parent directories of the given
-			# folder have a single quote in their name
-			singleQuoteIndex = PATH.find("'")
-			succeedingSepIndex = PATH.find(os.sep, singleQuoteIndex)
-			if succeedingSepIndex == -1:
-				succeedingSepIndex = None
-			fatalPortion = PATH[:succeedingSepIndex]
-			os.chdir(os.path.dirname(fatalPortion))
-			properPortion = fatalNameRegex.sub('_', os.path.basename(fatalPortion))
-			properPath = os.path.dirname(fatalPortion) + os.sep + properPortion
-			os.rename(fatalPortion, properPath)
-			renamed[fatalPortion] = properPath
-			PATH = properPath + PATH[len(fatalPortion):]
-
-	if handleChildFiles:
-		redoWalk = True
-		while redoWalk:
-			for dirPath, dirNames, files in os.walk(PATH):
-				redoWalk = False
-				os.chdir(dirPath)
-				if fatalNameRegex.search(dirPath):
-					properName = fatalNameRegex.sub('_', os.path.basename(dirPath))
-					dirPath = os.path.abspath(dirPath)
-					properPath = os.sep .join([os.path.dirname(dirPath), properName])
-					os.rename(dirPath, properPath)
-					renamed[dirPath] = properPath
-					redoWalk = True
-				for _dir in dirNames:
-					if fatalNameRegex.search(_dir):
-						properName = fatalNameRegex.sub('_', _dir)
-						_dirPath = os.path.abspath(_dir)
-						properPath = os.sep .join([os.path.dirname(_dirPath), properName])
-						os.rename(_dirPath, properPath)
-						renamed[_dirPath] = properPath
-						redoWalk = True
-				for _file in files:
-					if fatalNameRegex.search(_file):
-						filePath = os.path.abspath(_file)
-						properName = fatalNameRegex.sub('_', _file)
-						properPath = os.sep .join([os.path.dirname(filePath), properName])
-						os.rename(filePath, properPath)
-						renamed[filePath] = properPath
-						redoWalk = True
-				if redoWalk:
-					break
-
-	return renamed, PATH
-
-
-def singleQuoteReverser(renamed_dict):
-	"""Reverses The Changes Made By the singleQuoteHandler function.
-	   In the SOURCE!!! (only)
-	"""
-	# The reason why OrderedDict was employed was so that this traversal could be
-	# made from the child directories to parent directories so that none of the
-	# paths might be 'broken'. An ordered bottom-Up, instead of a disordered top-down.
-	for old_name in reversed(renamed_dict):
-		os.rename(renamed_dict[old_name], old_name)
-
-
-def figureAlteredDestination(DEST, renamed_dict): 
-	"""Given the destination and renamed_dict, returns the altered Destination,
-	if any. Useful when the source and destination are in the same directory-tree.
-	"""
-	newDest = DEST # just assuming, and is useful later on
-	test_chunk = DEST
-	if DEST in renamed_dict:
-		newDest = renamed_dict[DEST]
-	else:
-		while test_chunk != '/':
-			test_chunk = os.path.dirname(test_chunk)
-			if test_chunk in renamed_dict:
-				newDest = renamed_dict[test_chunk] + newDest[len(test_chunk):]
-
-	return newDest
-
-
-def cloneNameSourcerer(SOURCE, DEST):
-	"""Turns the clone names back to the way they were named back in the source. The
-	   name's a bad pun and this function is supposed to be the last one of the 'rever-
-	   se' functions to be executed.
-	   Since by the time of execution of this function, the source and the 1st dest will
-	   have been restored to original already, give it the original source and dest.
-	"""
-	originalNameList = []
-
-	for _dir, _dirs, _files in os.walk(SOURCE):
-		os.chdir(_dir)
-		originalNameList.append(os.path.abspath(_dir))
-		for eachDir in _dirs:
-			originalNameList.append(os.path.abspath(eachDir))
-		for _file in _files:
-			originalNameList.append(os.path.abspath(_file))
-
-	for originalName in reversed(originalNameList): # Has to be reversed. Bottom to top.
-		originalExportPath = figureExportPath(originalName, SOURCE, DEST)
-		processedExportPath = re.sub(r'\'', '_', originalExportPath)
-		exportPathOriginalChunk = originalExportPath[:len(DEST)]
-		exportPathOtherChunk = processedExportPath[len(exportPathOriginalChunk):]
-		currentExportPath = exportPathOriginalChunk + exportPathOtherChunk
-		if os.path.exists(currentExportPath):
-			os.rename(currentExportPath,
-				os.path.dirname(currentExportPath)
-				+ os.sep
-				+ re.sub(r'_', r"'", os.path.basename(currentExportPath)))
-
-
 def parse_arguments():
 	"""Parses Arguments. Created for a cleaner code."""
 	global parser, args
@@ -214,8 +97,6 @@ def main():
 		DEST = os.path.abspath(args.DESTINATION)
 	else:
 		DEST = os.path.dirname(SOURCE)
-	UNABRIDGED_DEST = DEST
-	UNABRIDGED_SOURCE = SOURCE
 	ResizeScale = args.Image_resize_scale
 	cloneExportPath = figureExportPath(SOURCE, SOURCE, DEST) # Export Path for the 'clone'
 	if os.path.exists(cloneExportPath) and not args.DESTINATION == '__in-place__':
@@ -227,14 +108,6 @@ def main():
 			  
 			  """ % os.path.basename(SOURCE), file=sys.stderr)
 		sys.exit(1)
-
-	# starts the work; renames paths with single quotes (') to have (_) instead of (')
-	renamed_dict_src, SOURCE = singleQuoteHandler(SOURCE)
-	destHasBeenAltered = not os.path.exists(DEST)
-	if destHasBeenAltered:
-		OLD_DEST = DEST
-		DEST = figureAlteredDestination(OLD_DEST, renamed_dict_src)
-	renamed_dict_dest, DEST = singleQuoteHandler(DEST, handleChildFiles=False)
 
 	# The main part of the script
 	ORIGINAL_SIZE = subprocess.getoutput("du -h '%s' | tail -n 1 | cut -f 1" % SOURCE)
@@ -271,15 +144,10 @@ def main():
 			else:
 				print(subprocess.getoutput("cp -v '%s' '%s'" % 
 					(_file, exportPath)))
-	currentExportPath = figureExportPath(SOURCE, SOURCE, DEST)
+
 	PROCESSED_SIZE = subprocess.getoutput("du -h '%s' | tail -n 1 | cut -f 1"
 		% currentExportPath)
 
-	# This part reverses the changes made by the single-quote-handler function(s)
-	singleQuoteReverser(renamed_dict_dest)
-	singleQuoteReverser(renamed_dict_src)
-	cloneNameSourcerer(UNABRIDGED_SOURCE, UNABRIDGED_DEST)
-	
 	# Final output. Logs.
 	print("\nAll Done!")
 	print("Original:   %s\t%s" % (ORIGINAL_SIZE, UNABRIDGED_SOURCE)) 
