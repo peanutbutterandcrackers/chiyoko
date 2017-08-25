@@ -59,7 +59,6 @@ very useful.
 ### Modifications
 If the settings aren't working for you, open the script in a text editor and change the two global variables to be
 what you want them to be. I'd try the modified commands on a few guinea files before I modify the script's commands,
-though. Just make sure that you define the command string with a double quote and keep the single quotes around the
-'%s'-es. The single quotes are there to safe-guard against any shell expansions.
+though.
 
 Maybe listen to "Chiyoko's Theme" while running this script?      
