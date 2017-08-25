@@ -20,6 +20,12 @@ def is_image(_file):
 		% os.path.abspath(shlex.quote(_file))))
 
 
+def image_is_larger_than_resize_scale(img_file):
+	"""Checks whether or not an image file is larger than the specified resize scale"""
+	return int(subprocess.getoutput('identify -ping -format "%w"' +
+					" %s" % shlex.quote(img_file))) > IMAGE_RESIZE_SCALE
+
+
 def is_video(_file):
 	"""Checks whether a file is a video or not -> boolean"""
 	return ('video' in str(mimetypes.guess_type(_file)[0])) or \
@@ -36,6 +42,8 @@ def figure_export_path(_file, SOURCE, DESTINATION):
 
 def create_export_path(req_export_path):
 	"""Creates required export paths"""
+	if not os.path.isdir(os.path.basename(req_export_path)):
+		req_export_path = os.path.dirname(req_export_path)
 	os.makedirs(req_export_path, exist_ok=True)
 
 
@@ -58,7 +66,6 @@ def parse_arguments():
 			action='store_true')
 	args = parser.parse_args()
 
-	# Initializations:
 	if not os.path.exists(args.SOURCE):
 		print("The specified source '%s' doesn't exist." % args.SOURCE,
 				file=sys.stderr)
@@ -86,47 +93,54 @@ def parse_arguments():
 			  """ % os.path.basename(SOURCE), file=sys.stderr)
 		sys.exit(1)
 
+	if not (bool(IMAGE_RESIZE_SCALE) or bool(args.Video)):
+		print("Please specify either -I or -V flag. Exiting.", file=sys.stderr)
+		sys.exit(1)
+
 
 def main():
 	init_time = time()
+	preliminary_checks()
+	parse_arguments()
+
 	ORIGINAL_SIZE = subprocess.getoutput("du -h '%s' | tail -n 1 | cut -f 1" % SOURCE)
 
-	for dirpath, dirnames, files in os.walk(SOURCE):
+	for dirpath, subdirs, files in os.walk(SOURCE):
 		os.chdir(dirpath)
-		print()
-		print('*' * 10 + "Current Directory: %s" % dirpath + '*' * 10)
-		print()
-		if not (bool(dirnames) and bool(files)):
-			# Clone even the empty directories
+		print('\n' + '*' * 10 + "Current Directory: %s" % dirpath + '*' * 10 + '\n')
+		if not (bool(subdirs) and bool(files)):
+			# Clone even the empty dirs/subdirs
 			dirpath = os.path.abspath(dirpath)
-			dir_exportPath = figureExportPath(dirpath, SOURCE, DEST)
-			os.makedirs(dir_exportPath, exist_ok=True)
+			create_export_path(figure_export_path(dirpath, SOURCE, DESTINATION))
 		for _file in files:
-			filePath = os.path.abspath(_file)	
-			exportPath = figureExportPath(filePath, SOURCE, DEST)
-			createReqExportPath(exportPath)
-			if bool(ResizeScale) and isImage(filePath):
-				if ( int(subprocess.getoutput('identify -ping -format "%w"' +
-					" '%s'" % _file)) > ResizeScale ):
-					print(subprocess.getoutput(ImageProcessor
-						 % (ResizeScale, _file, exportPath)))
-			elif bool(args.Video) and ( isVideo(filePath) or isMP4(filePath) ):
+			file_path = os.path.abspath(_file)
+			export_path = figure_export_path(file_path, SOURCE, DESTINATION)
+			create_export_path(export_path)
+			_file, export_path = shlex.quote(_file), shlex.quote(export_path)
+			if bool(IMAGE_RESIZE_SCALE) and is_image(file_path):
+					if image_is_larger_than_resize_scale(file_path):
+						print(subprocess.getoutput(ImageProcessor
+							 % (ResizeScale, _file,
+							 	export_path)))
+			elif bool(args.Video) and isVideo(file_path):
 				print("\nWorking on the video '%s'" % _file)
 				print("This will take quite a bit of time... please be patient")
 				start_time = time()
 				if args.DESTINATION == '__in-place__':
-					subprocess.getoutput(VideoProcessor % (_file, 'buffer_'+_file))
+					subprocess.getoutput(VideoProcessor % (_file, 
+						shlex.quote('buffer_'+_file)))
 					os.rename('buffer_'+_file, _file)
 				else:
-					subprocess.getoutput(VideoProcessor % (_file, exportPath))
+					subprocess.getoutput(VideoProcessor % (_file, export_path))
 				print("Processed '%s' in %f seconds"
 					 % (_file, (time()-start_time)), end='\n\n')
 			else:
 				print(subprocess.getoutput("cp -v '%s' '%s'" % 
-					(_file, exportPath)))
+					(_file, export_path)))
 
 	PROCESSED_SIZE = subprocess.getoutput("du -h '%s' | tail -n 1 | cut -f 1"
 		% clone_export_path)
+
 	print("\nAll Done!")
 	print("Original:   %s\t%s" % (ORIGINAL_SIZE, SOURCE))
 	print("Processed:  %s\t%s" % (PROCESSED_SIZE, clone_export_path))
