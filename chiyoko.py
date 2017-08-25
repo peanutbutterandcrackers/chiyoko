@@ -6,6 +6,20 @@ import argparse, mimetypes, os, re, shlex, subprocess, sys
 ImageProcessor = "convert -verbose -resize %s %s %s"
 VideoProcessor = "ffmpeg -loglevel quiet -y -i %s -b:v 698k -b:a 94k -ar 48000 -s 640x512 -strict -2 %s"
 
+def make_callable(command, *arguments):
+	"""Takes a command and returns a callable list with the arguments in place.
+	   Because subprocess.call() expects a list."""
+	index = 0
+	callable_list = command.split()
+	if callable_list.count('%s') != len(arguments):
+		raise ValueError("Unmatched number of arguments.")
+	for i in range(len(callable_list)):
+		if callable_list[i] == '%s':
+			callable_list[i] = arguments[index]
+			index += 1
+	return callable_list
+
+
 def preliminary_checks():
 	"""Checks whether or not dependencies are installed properly. If not, exits"""
 	dependencies = ['ffmpeg', 'convert']
@@ -17,7 +31,7 @@ def is_image(_file):
 	"""Checks whether a file is an image or not -> boolean"""
 	return ('image' in str(mimetypes.guess_type(_file)[0])) and \
 		('image' in subprocess.getoutput("file --brief --mime-type %s"
-		% os.path.abspath(shlex.quote(_file))))
+		% shlex.quote(_file)))
 
 
 def image_is_larger_than_resize_scale(img_file):
@@ -30,14 +44,14 @@ def is_video(_file):
 	"""Checks whether a file is a video or not -> boolean"""
 	return ('video' in str(mimetypes.guess_type(_file)[0])) or \
 		('video' in subprocess.getoutput("file --brief --mime-type %s"
-		% os.path.abspath(shlex.quote(_file))))
+		% shlex.quote(_file)))
 
 
 def figure_export_path(_file, SOURCE, DESTINATION):
 	"""Figures out the export path for a given file"""
 	file_path = os.path.abspath(_file)
 	DESTINATION = os.path.abspath(DESTINATION)
-	return DESTINATION + os.sep + file_path[re.search(SOURCE, _file).start():]
+	return DESTINATION + os.sep + file_path[re.search(os.path.basename(SOURCE), _file).start():]
 
 
 def create_export_path(req_export_path):
@@ -82,7 +96,7 @@ def parse_arguments():
 		DESTINATION = os.path.dirname(SOURCE)
 	IMAGE_RESIZE_SCALE = args.Image_Resize_Scale
 
-	clone_export_path = figureExportPath(SOURCE, SOURCE, DESTINATION)
+	clone_export_path = figure_export_path(SOURCE, SOURCE, DESTINATION)
 	if os.path.exists(clone_export_path) and not args.DESTINATION == '__in-place__':
 		print("""
 			   It seems that there already is a file named '%s' in the specified
@@ -103,7 +117,7 @@ def main():
 	preliminary_checks()
 	parse_arguments()
 
-	ORIGINAL_SIZE = subprocess.getoutput("du -h '%s' | tail -n 1 | cut -f 1" % SOURCE)
+	ORIGINAL_SIZE = subprocess.getoutput("du -h %s | tail -n 1 | cut -f 1" % shlex.quote(SOURCE))
 
 	for dirpath, subdirs, files in os.walk(SOURCE):
 		os.chdir(dirpath)
@@ -116,30 +130,35 @@ def main():
 			file_path = os.path.abspath(_file)
 			export_path = figure_export_path(file_path, SOURCE, DESTINATION)
 			create_export_path(export_path)
-			_file, export_path = shlex.quote(_file), shlex.quote(export_path)
-			if bool(IMAGE_RESIZE_SCALE) and is_image(file_path):
-					if image_is_larger_than_resize_scale(file_path):
-						print(subprocess.getoutput(ImageProcessor
-							 % (ResizeScale, _file,
-							 	export_path)))
-			elif bool(args.Video) and isVideo(file_path):
+			if (bool(IMAGE_RESIZE_SCALE) and is_image(file_path) and
+				image_is_larger_than_resize_scale(file_path)):
+				subprocess.call(make_callable(ImageProcessor,
+					str(IMAGE_RESIZE_SCALE), _file, export_path))
+#						print(subprocess.getoutput(ImageProcessor
+#							 % (IMAGE_RESIZE_SCALE, _file,
+#							 	export_path)))
+			elif bool(args.Video) and is_video(file_path):
 				print("\nWorking on the video '%s'" % _file)
 				print("This will take quite a bit of time... please be patient")
 				start_time = time()
 				if args.DESTINATION == '__in-place__':
-					subprocess.getoutput(VideoProcessor % (_file, 
-						shlex.quote('buffer_'+_file)))
+					subprocess.call(make_callable(VideoProcessor, _file,
+						'buffer_' + _file))
+#					subprocess.getoutput(VideoProcessor % (_file, 
+#						shlex.quote('buffer_'+_file)))
 					os.rename('buffer_'+_file, _file)
 				else:
-					subprocess.getoutput(VideoProcessor % (_file, export_path))
+#					subprocess.getoutput(VideoProcessor % (_file, export_path))
+					subprocess.call(make_callable(VideoProcessor, _file, export_path))
 				print("Processed '%s' in %f seconds"
 					 % (_file, (time()-start_time)), end='\n\n')
 			else:
-				print(subprocess.getoutput("cp -v '%s' '%s'" % 
-					(_file, export_path)))
+#				print(subprocess.getoutput("cp -v '%s' '%s'" % 
+#					(_file, export_path)))
+				subprocess.call(make_callable('cp -v %s %s', _file, export_path))
 
-	PROCESSED_SIZE = subprocess.getoutput("du -h '%s' | tail -n 1 | cut -f 1"
-		% clone_export_path)
+	PROCESSED_SIZE = subprocess.getoutput("du -h %s | tail -n 1 | cut -f 1"
+		% shlex.quote(clone_export_path))
 
 	print("\nAll Done!")
 	print("Original:   %s\t%s" % (ORIGINAL_SIZE, SOURCE))
