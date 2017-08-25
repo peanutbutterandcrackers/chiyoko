@@ -23,9 +23,17 @@ def make_callable(command, *arguments):
 def preliminary_checks():
 	"""Checks whether or not dependencies are installed properly. If not, exits"""
 	dependencies = ['ffmpeg', 'convert']
-	missing_dependencies = {}
-	pass
-
+	missing_dependencies = []
+	for dependency in dependencies:
+		return_val = subprocess.call([dependency, '--version'], stdout=-3, stderr=-3)
+		if return_val == 127:
+			missing_depencies.append(dependency)
+	if len(missing_dependencies) > 0:
+		print("You have following unmet dependencies: ", file=sys.stderr)
+		for i in missing_dependencies:
+			print(i, file=sys.stderr)
+		print("Please install the packages and try again.\nExiting.", file=sys.stderr)
+		sys.exit(1)
 
 def is_image(_file):
 	"""Checks whether a file is an image or not -> boolean"""
@@ -134,9 +142,6 @@ def main():
 				image_is_larger_than_resize_scale(file_path)):
 				subprocess.call(make_callable(ImageProcessor,
 					str(IMAGE_RESIZE_SCALE), _file, export_path))
-#						print(subprocess.getoutput(ImageProcessor
-#							 % (IMAGE_RESIZE_SCALE, _file,
-#							 	export_path)))
 			elif bool(args.Video) and is_video(file_path):
 				print("\nWorking on the video '%s'" % _file)
 				print("This will take quite a bit of time... please be patient")
@@ -144,17 +149,12 @@ def main():
 				if args.DESTINATION == '__in-place__':
 					subprocess.call(make_callable(VideoProcessor, _file,
 						'buffer_' + _file))
-#					subprocess.getoutput(VideoProcessor % (_file, 
-#						shlex.quote('buffer_'+_file)))
 					os.rename('buffer_'+_file, _file)
 				else:
-#					subprocess.getoutput(VideoProcessor % (_file, export_path))
 					subprocess.call(make_callable(VideoProcessor, _file, export_path))
 				print("Processed '%s' in %f seconds"
 					 % (_file, (time()-start_time)), end='\n\n')
 			else:
-#				print(subprocess.getoutput("cp -v '%s' '%s'" % 
-#					(_file, export_path)))
 				subprocess.call(make_callable('cp -v %s %s', _file, export_path))
 
 	PROCESSED_SIZE = subprocess.getoutput("du -h %s | tail -n 1 | cut -f 1"
