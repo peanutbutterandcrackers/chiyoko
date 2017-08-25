@@ -31,7 +31,7 @@ $ python3 chiyoko.py SOURCE DESTINATION -I -V
 
 ### Dependencies
 * imagemagick ```$ sudo apt-get install imagemagick```
-* avconv ```$ sudo apt-get install libav-tools```
+* ffmpeg ```$ sudo apt-get install ffmpeg```
 * Other GNU utilities that should be on your Linux Distro by default ```file, du, tail, etc.```
 
 ### Usage
@@ -47,9 +47,9 @@ The Script takes two mandatory arguments: ```SOURCE``` and ```DESTINATION```
 So, you'll have everything in the same directory, but compressed. (This special parameter's syntax has been
 intentionally made to resemble Python's special variable syntax.)
 
-* ```-I``` turns on photo processing. Photo processing as in resizes everything to be 1000xautomatic_value size (by default) An optional parameter to ```-I``` can change the resize scale. I generally use 1300, 1700 and similar numbers for the super important pictures, but 1000 works just fine for most cases.
+* ```-I``` turns on photo processing. Photo processing as in resizes everything to be 1300xautomatic_value size (by default) An optional parameter to ```-I``` can change the resize scale. I generally use 1300, 1700 and similar numbers for the super important pictures, but 1000 works just fine for most cases.
 
-* ```-V``` turns on video processing. This doesn't take any arguments. The underlying avconv command that does the video processing is courtesy of @leklachu, a really cool guy.
+* ```-V``` turns on video processing. This doesn't take any arguments. The underlying command that does the video processing is courtesy of @leklachu, a really cool guy.
 
 * ```-h``` or ```--help``` will give you usage information
 
