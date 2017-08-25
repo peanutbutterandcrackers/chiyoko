@@ -3,8 +3,8 @@
 from time import time
 import argparse, mimetypes, os, re, shlex, subprocess, sys
 
-ImageProcessor = "convert -verbose -resize %s '%s' '%s'"
-VideoProcessor = "ffmpeg -loglevel quiet -y -i '%s' -b:v 698k -b:a 94k -ar 48000 -s 640x512 -strict -2 '%s'"
+ImageProcessor = "convert -verbose -resize %s %s %s"
+VideoProcessor = "ffmpeg -loglevel quiet -y -i %s -b:v 698k -b:a 94k -ar 48000 -s 640x512 -strict -2 %s"
 
 def preliminary_checks():
 	"""Checks whether or not dependencies are installed properly. If not, exits"""
@@ -13,70 +13,52 @@ def preliminary_checks():
 	pass
 
 
-def isImage(givenFile):
-	"""Returns a Boolean value. True or False. Rough definition of an Image"""
-	subject = os.path.abspath(givenFile)
-	isImg = ( 'image' in str(mimetypes.guess_type(givenFile)[0]) ) and \
-		( 'image' in subprocess.getoutput("file --brief --mime-type '%s'" % subject) )
-	return isImg
+def is_image(_file):
+	"""Checks whether a file is an image or not -> boolean"""
+	return ('image' in str(mimetypes.guess_type(_file)[0])) and \
+		('image' in subprocess.getoutput("file --brief --mime-type %s"
+		% os.path.abspath(shlex.quote(_file))))
 
 
-def isVideo(givenFile):
-	"""Checks Whether a File is a Video or not -> Boolean"""
-	subject = os.path.abspath(givenFile)
-	isVid = ( 'video' in str(mimetypes.guess_type(givenFile)[0]) ) and \
-		( 'video' in subprocess.getoutput("file --brief --mime-type '%s'" % subject) )
-	return isVid
+def is_video(_file):
+	"""Checks whether a file is a video or not -> boolean"""
+	return ('video' in str(mimetypes.guess_type(_file)[0])) or \
+		('video' in subprocess.getoutput("file --brief --mime-type %s"
+		% os.path.abspath(shlex.quote(_file))))
 
 
-def isMP4(givenFile):
-	"""Checks whether a file is an MP4 or not -> Boolean"""
-	# This had to be written because $ file foo.MP4 gave 'audio/mp4'
-	subject = os.path.abspath(givenFile)
-	isMP4 = ( 'video' in str(mimetypes.guess_type(givenFile)[0]) ) and \
-		( 'mp4' in subprocess.getoutput("file --brief --mime-type '%s'" % subject) )
-	return isMP4
-
-
-def figureExportPath(filePath, SOURCE, DEST):
+def figure_export_path(_file, SOURCE, DESTINATION):
 	"""Figures out the export path for a given file"""
-	filePath = os.path.abspath(filePath)
-	SOURCE = os.path.abspath(SOURCE)
-	DEST = os.path.abspath(DEST)
-	refDir = os.path.basename(SOURCE)
-	filePath_List = filePath.split(os.sep)
-	reqTail_List = filePath_List[filePath_List.index(refDir):]
-	reqTail = '%s' % os.sep .join(reqTail_List)
-	reqPath = os.path.join(DEST, reqTail)
-	return reqPath
+	file_path = os.path.abspath(_file)
+	DESTINATION = os.path.abspath(DESTINATION)
+	return DESTINATION + os.sep + file_path[re.search(SOURCE, _file).start():]
 
 
-def createReqExportPath(reqPath):
-	"""Checks whether or not the required path exists; creates non-existant"""
-	reqPath = os.path.abspath(reqPath)
-	if not os.path.isdir(os.path.basename(reqPath)):
-		reqPath = os.path.split(reqPath)[0]
-	if not os.path.exists(reqPath):
-		os.makedirs(reqPath)
+def create_export_path(req_export_path):
+	"""Creates required export paths"""
+	os.makedirs(req_export_path, exist_ok=True)
 
 
 def parse_arguments():
 	"""Parses Arguments. Created for a cleaner code."""
 	global parser, args
+	global SOURCE, DESTINATION
+	global IMAGE_RESIZE_SCALE, clone_export_path
 
 	parser = argparse.ArgumentParser(description="clone a directory hierarchy "
  		+ "and compress multimedia files along the way")
 	parser.add_argument('SOURCE', help='Input Path')
 	parser.add_argument('DESTINATION', help='Output Path' + 
 		" set to '__in-place__' to make the modifications in place")
-	parser.add_argument('-I', '--Image-resize-scale', metavar='n',
-			help='Turns on image resizing [default resize scale: 1000]',
-			type=int, nargs='?', const=1000) 
+	parser.add_argument('-I', '--Image-Resize-Scale', metavar='n',
+			help='Turns on image resizing [default resize scale: 1300]',
+			type=int, nargs='?', const=1300)
 	parser.add_argument('-V', '--Video',
  			help='Turns on video compression',
 			action='store_true')
 	args = parser.parse_args()
 
+	# Initializations:
 	if not os.path.exists(args.SOURCE):
 		print("The specified source '%s' doesn't exist." % args.SOURCE,
 				file=sys.stderr)
@@ -86,20 +68,15 @@ def parse_arguments():
 				args.DESTINATION, file = sys.stderr)
 		sys.exit(1)
 
-
-def main():
-	initTime = time()
-
-	# the "autobots, rollout" part of the script. Initializations.
-	parse_arguments()
 	SOURCE = os.path.abspath(args.SOURCE)
 	if not args.DESTINATION == '__in-place__':
-		DEST = os.path.abspath(args.DESTINATION)
+		DESTINATION = os.path.abspath(args.DESTINATION)
 	else:
-		DEST = os.path.dirname(SOURCE)
-	ResizeScale = args.Image_resize_scale
-	cloneExportPath = figureExportPath(SOURCE, SOURCE, DEST) # Export Path for the 'clone'
-	if os.path.exists(cloneExportPath) and not args.DESTINATION == '__in-place__':
+		DESTINATION = os.path.dirname(SOURCE)
+	IMAGE_RESIZE_SCALE = args.Image_Resize_Scale
+
+	clone_export_path = figureExportPath(SOURCE, SOURCE, DESTINATION)
+	if os.path.exists(clone_export_path) and not args.DESTINATION == '__in-place__':
 		print("""
 			   It seems that there already is a file named '%s' in the specified
 			   destination. Maybe it's the output of previous execution of this script.
@@ -109,8 +86,11 @@ def main():
 			  """ % os.path.basename(SOURCE), file=sys.stderr)
 		sys.exit(1)
 
-	# The main part of the script
+
+def main():
+	init_time = time()
 	ORIGINAL_SIZE = subprocess.getoutput("du -h '%s' | tail -n 1 | cut -f 1" % SOURCE)
+
 	for dirpath, dirnames, files in os.walk(SOURCE):
 		os.chdir(dirpath)
 		print()
@@ -146,13 +126,11 @@ def main():
 					(_file, exportPath)))
 
 	PROCESSED_SIZE = subprocess.getoutput("du -h '%s' | tail -n 1 | cut -f 1"
-		% currentExportPath)
-
-	# Final output. Logs.
+		% clone_export_path)
 	print("\nAll Done!")
-	print("Original:   %s\t%s" % (ORIGINAL_SIZE, UNABRIDGED_SOURCE)) 
-	print("Processed:  %s\t%s" % (PROCESSED_SIZE, cloneExportPath)) 
-	print("\nTime Taken: %f minutes" % (((time() - initTime)) / 60))
+	print("Original:   %s\t%s" % (ORIGINAL_SIZE, SOURCE))
+	print("Processed:  %s\t%s" % (PROCESSED_SIZE, clone_export_path))
+	print("\nTime Taken: %f minutes" % (((time() - init_time)) / 60))
 
 
 if __name__ == '__main__':
