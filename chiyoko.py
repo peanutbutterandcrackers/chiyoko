@@ -136,7 +136,8 @@ def main():
 			export_path = figure_export_path(file_path, SOURCE, DESTINATION)
 			create_export_path(export_path)
 
-			if bool(IMAGE_QUALITY_PERCENTAGE) and is_image(file_path):
+			if ( bool(IMAGE_QUALITY_PERCENTAGE) and is_image(file_path)
+				and (os.path.getsize(_file) > 1000000) ): # do not process images smaller than 1 MB
 				retcode = subprocess.call(make_callable(ImageProcessor,
 					str(IMAGE_QUALITY_PERCENTAGE), _file, export_path))
 				if retcode != 0:
