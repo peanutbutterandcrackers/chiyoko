@@ -49,7 +49,7 @@ intentionally made to resemble Python's special variable syntax.)
 
 * ```-I``` turns on photo processing. Photo processing as in resizes everything to be 1300xautomatic_value size (by default) An optional parameter to ```-I``` can change the resize scale. I generally use 1300, 1700 and similar numbers for the super important pictures, but 1000 works just fine for most cases.
 
-* ```-V``` turns on video processing. This doesn't take any arguments. The underlying command that does the video processing is courtesy of @leklachu, a really cool guy.
+* ```-V``` turns on video processing. This doesn't take any arguments.
 
 * ```-h``` or ```--help``` will give you usage information
 

@@ -4,7 +4,8 @@ from time import time
 import argparse, mimetypes, os, re, shlex, subprocess, sys
 
 ImageProcessor = "convert -verbose -resize %s %s %s"
-VideoProcessor = "ffmpeg -loglevel quiet -y -i %s -b:v 698k -b:a 94k -ar 48000 -s 640x512 -strict -2 %s"
+VideoProcessor = "ffmpeg -loglevel quiet -i %s -s hd480 -c:v libx264 -crf 23 -c:a aac -strict -2 %s" # 480p
+#VideoProcessor = "ffmpeg -loglevel quiet -i %s -b:v 698k -b:a 94k -ar 48000 -s 640x512 -strict -2 %s" # for smaller video size
 
 def make_callable(command, *arguments):
 	"""Takes a command and returns a callable list with the arguments in place.
