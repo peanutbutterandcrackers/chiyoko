@@ -3,7 +3,7 @@
 from time import time
 import argparse, mimetypes, os, re, shlex, subprocess, sys
 
-ImageProcessor = "convert -verbose -resize %s %s %s"
+ImageProcessor = "convert -verbose -quality %s %s %s"
 VideoProcessor = "ffmpeg -loglevel quiet -i %s -s hd480 -c:v libx264 -crf 23 -c:a aac -strict -2 %s" # 480p
 #VideoProcessor = "ffmpeg -loglevel quiet -i %s -b:v 698k -b:a 94k -ar 48000 -s 640x512 -strict -2 %s" # for smaller video size
 
@@ -46,7 +46,7 @@ def is_image(_file):
 def image_is_larger_than_resize_scale(img_file):
 	"""Checks whether or not an image file is larger than the specified resize scale"""
 	return int(subprocess.getoutput('identify -ping -format "%w"' +
-					" %s" % shlex.quote(img_file))) > IMAGE_RESIZE_SCALE
+					" %s" % shlex.quote(img_file))) > IMAGE_QUALITY_PERCENTAGE
 
 
 def is_video(_file):
@@ -74,16 +74,16 @@ def parse_arguments():
 	"""Parses Arguments. Created for a cleaner code."""
 	global parser, args
 	global SOURCE, DESTINATION
-	global IMAGE_RESIZE_SCALE, clone_export_path
+	global IMAGE_QUALITY_PERCENTAGE, clone_export_path
 
 	parser = argparse.ArgumentParser(description="clone a directory hierarchy "
  		+ "and compress multimedia files along the way")
 	parser.add_argument('SOURCE', help='Input Path')
 	parser.add_argument('DESTINATION', help='Output Path' + 
 		" set to '__in-place__' to make the modifications in place")
-	parser.add_argument('-I', '--Image-Resize-Scale', metavar='n',
-			help='Turns on image resizing [default resize scale: 1300]',
-			type=int, nargs='?', const=1300)
+	parser.add_argument('-I', '--Image-quality', metavar='QUALITY PERCENTAGE',
+			help='Turns on Image processing [default quality: 73%%]',
+			type=int, nargs='?', const=73)
 	parser.add_argument('-V', '--Video',
  			help='Turns on video compression',
 			action='store_true')
@@ -103,7 +103,7 @@ def parse_arguments():
 		DESTINATION = os.path.abspath(args.DESTINATION)
 	else:
 		DESTINATION = os.path.dirname(SOURCE)
-	IMAGE_RESIZE_SCALE = args.Image_Resize_Scale
+	IMAGE_QUALITY_PERCENTAGE = args.Image_quality
 
 	clone_export_path = figure_export_path(SOURCE, SOURCE, DESTINATION)
 	if os.path.exists(clone_export_path) and not args.DESTINATION == '__in-place__':
@@ -116,7 +116,7 @@ def parse_arguments():
 			  """ % os.path.basename(SOURCE), file=sys.stderr)
 		sys.exit(1)
 
-	if not (bool(IMAGE_RESIZE_SCALE) or bool(args.Video)):
+	if not (bool(IMAGE_QUALITY_PERCENTAGE) or bool(args.Video)):
 		print("Please specify either -I or -V flag. Exiting.", file=sys.stderr)
 		sys.exit(1)
 
@@ -139,10 +139,10 @@ def main():
 			file_path = os.path.abspath(_file)
 			export_path = figure_export_path(file_path, SOURCE, DESTINATION)
 			create_export_path(export_path)
-			if (bool(IMAGE_RESIZE_SCALE) and is_image(file_path) and
+			if (bool(IMAGE_QUALITY_PERCENTAGE) and is_image(file_path) and
 				image_is_larger_than_resize_scale(file_path)):
 				subprocess.call(make_callable(ImageProcessor,
-					str(IMAGE_RESIZE_SCALE), _file, export_path))
+					str(IMAGE_QUALITY_PERCENTAGE), _file, export_path))
 			elif bool(args.Video) and is_video(file_path):
 				print("\nWorking on the video '%s'" % _file)
 				print("This will take quite a bit of time... please be patient")
