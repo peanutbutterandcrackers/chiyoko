@@ -36,17 +36,12 @@ def preliminary_checks():
 		print("Please install the packages and try again.\nExiting.", file=sys.stderr)
 		sys.exit(1)
 
+
 def is_image(_file):
 	"""Checks whether a file is an image or not -> boolean"""
 	return ('image' in str(mimetypes.guess_type(_file)[0])) and \
 		('image' in subprocess.getoutput("file --brief --mime-type %s"
 		% shlex.quote(_file)))
-
-
-def image_is_larger_than_resize_scale(img_file):
-	"""Checks whether or not an image file is larger than the specified resize scale"""
-	return int(subprocess.getoutput('identify -ping -format "%w"' +
-					" %s" % shlex.quote(img_file))) > IMAGE_QUALITY_PERCENTAGE
 
 
 def is_video(_file):
@@ -135,14 +130,18 @@ def main():
 			# Clone even the empty dirs/subdirs
 			dirpath = os.path.abspath(dirpath)
 			create_export_path(figure_export_path(dirpath, SOURCE, DESTINATION))
+
 		for _file in files:
 			file_path = os.path.abspath(_file)
 			export_path = figure_export_path(file_path, SOURCE, DESTINATION)
 			create_export_path(export_path)
-			if (bool(IMAGE_QUALITY_PERCENTAGE) and is_image(file_path) and
-				image_is_larger_than_resize_scale(file_path)):
-				subprocess.call(make_callable(ImageProcessor,
+
+			if bool(IMAGE_QUALITY_PERCENTAGE) and is_image(file_path):
+				retcode = subprocess.call(make_callable(ImageProcessor,
 					str(IMAGE_QUALITY_PERCENTAGE), _file, export_path))
+				if retcode != 0:
+					subprocess.call(make_callable('cp -v %s %s', _file, export_path))
+
 			elif bool(args.Video) and is_video(file_path):
 				print("\nWorking on the video '%s'" % _file)
 				print("This will take quite a bit of time... please be patient")
@@ -155,6 +154,7 @@ def main():
 					subprocess.call(make_callable(VideoProcessor, _file, export_path))
 				print("Processed '%s' in %f seconds"
 					 % (_file, (time()-start_time)), end='\n\n')
+
 			else:
 				subprocess.call(make_callable('cp -v %s %s', _file, export_path))
 
