@@ -61,4 +61,7 @@ If the settings aren't working for you, open the script in a text editor and cha
 what you want them to be. I'd try the modified commands on a few guinea files before I modify the script's commands,
 though.
 
+### Installation
+```./INSTALL.sh --help # for information regarding installation```
+
 Maybe listen to "Chiyoko's Theme" while running this script?      
