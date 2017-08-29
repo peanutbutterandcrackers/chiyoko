@@ -8,9 +8,9 @@ Hey You!
 Yes, you.<br />
 Have an organized directory hierarchy containing all of your pictures and videos and running out of space? "*Yes!*"<br />
 Need to compress those photos and videos while maintaining the organization in the directory? "*Yes!*"<br /> Want to compress your
-multimedia files and keep the organization? "*Yes!*"<br /> Then chiyoko.py is the right module for you!!!
+multimedia files and keep the organization? "*Yes!*"<br /> Then chiyoko is the right module for you!!!
 
-"*What is chiyoko.py?*"
+"*What is chiyoko?*"
 
 ( Okay... I'm done with this T.V infomercial thingy. )
 
@@ -26,7 +26,7 @@ and run this script. This one is your best bet: https://linuxmint.com/download.p
 comes with all the dependencies pre-installed and you can run this script with this simple command:
 
 ```bash
-$ python3 chiyoko.py SOURCE DESTINATION -I -V
+$ python3 chiyoko SOURCE DESTINATION -I -V
 ```
 
 ### Dependencies
