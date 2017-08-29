@@ -5,7 +5,9 @@ import argparse, mimetypes, os, re, shlex, subprocess, sys
 
 ImageProcessor = "convert -verbose -quality %s %s %s"
 VideoProcessor = "ffmpeg -loglevel quiet -i %s -s hd480 -c:v libx264 -crf 23 -c:a aac -strict -2 %s" # 480p
-#VideoProcessor = "ffmpeg -loglevel quiet -i %s -b:v 698k -b:a 94k -ar 48000 -s 640x512 -strict -2 %s" # for smaller video size
+# Constant Rate Factor (crf) can be 0-51; 0 is lossless, 51 is worst possible; 18-28 is the good range.
+# -s hd720 for 720p. But the default settings should be fine for most of the cases.
+# VideoProcessor = "ffmpeg -loglevel quiet -i %s -b:v 698k -b:a 94k -ar 48000 -s 640x512 -strict -2 %s" # for smaller video size
 
 def make_callable(command, *arguments):
 	"""Takes a command and returns a callable list with the arguments in place.
