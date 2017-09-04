@@ -100,7 +100,15 @@ def parse_arguments():
 		DESTINATION = os.path.abspath(args.DESTINATION)
 	else:
 		DESTINATION = os.path.dirname(SOURCE)
-	IMAGE_QUALITY_PERCENTAGE = args.Image_quality
+
+	# check if the specified destination is inside the source itself, and prevent EL-loop
+	if bool(re.compile(r'%s' % (SOURCE + os.path.sep)).match(DESTINATION)):
+		print("""
+			The destination you specified exists inside the specified source.
+			Please specify a destination outside the source.
+			Exiting.
+		      """, file=sys.stderr)
+		sys.exit(1)
 
 	clone_export_path = figure_export_path(SOURCE, SOURCE, DESTINATION)
 	if os.path.exists(clone_export_path) and not args.DESTINATION == '__in-place__':
@@ -109,10 +117,10 @@ def parse_arguments():
 			   destination. Maybe it's the output of previous execution of this script.
 			   If you want to have a clone generated in the same place, either rename
 			   or delete the file, and re-run this script.
-			  
 			  """ % os.path.basename(SOURCE), file=sys.stderr)
 		sys.exit(1)
 
+	IMAGE_QUALITY_PERCENTAGE = args.Image_quality
 	if not (bool(IMAGE_QUALITY_PERCENTAGE) or bool(args.Video)):
 		print("Please specify either -I or -V flag. Exiting.", file=sys.stderr)
 		sys.exit(1)
