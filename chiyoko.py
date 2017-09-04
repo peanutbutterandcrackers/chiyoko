@@ -28,13 +28,13 @@ def preliminary_checks():
 	dependencies = ['ffmpeg', 'convert']
 	missing_dependencies = []
 	for dependency in dependencies:
-		return_val = subprocess.call([dependency, '--version'], stdout=-3, stderr=-3)
+		return_val = subprocess.getstatusoutput('%s --version' % dependency)[0]
 		if return_val == 127:
-			missing_depencies.append(dependency)
+			missing_dependencies.append(dependency)
 	if len(missing_dependencies) > 0:
 		print("You have following unmet dependencies: ", file=sys.stderr)
 		for i in missing_dependencies:
-			print(i, file=sys.stderr)
+			print('*', i, file=sys.stderr)
 		print("Please install the packages and try again.\nExiting.", file=sys.stderr)
 		sys.exit(1)
 
